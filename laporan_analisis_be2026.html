@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laporan Individu BE Fasa 3 : Seksyen Industri — DOSM WPKL</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --navy:#0c1a3d; --navy2:#13245c;
+    --gold1:#f7b733; --gold2:#e07a1f;
+    --silver1:#9aa4b2; --silver2:#5f6a7a;
+    --bronze1:#c9772f; --bronze2:#7a4416;
+    --ink:#0f172a; --sub:#64748b; --line:#e6e9f0;
+    --green:#16a34a; --green-bg:#eafaf0;
+    --red:#e11d48; --amber:#f59e0b;
+    --bg:#eef1f7;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);}
+  .topbar{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+  .topbar .brand{font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px;margin-right:auto;white-space:nowrap;}
+  .topbar .filters{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .fgroup{display:flex;flex-direction:column;gap:3px;}
+  .fgroup label{font-size:9px;letter-spacing:.06em;color:#9fb0d8;text-transform:uppercase;font-weight:600;}
+  .fgroup select, .fgroup input{background:#16204a;color:#fff;border:1px solid #2a3a72;border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit;min-width:110px;}
+  .fgroup input[type=number]{width:64px;min-width:64px;}
+  .toolrow{background:var(--navy2);color:#cfe0ff;padding:8px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;}
+  .toolrow a{color:#cfe0ff;text-decoration:none;background:#1a2a5c;padding:5px 10px;border-radius:6px;display:flex;align-items:center;gap:6px;}
+  .toolrow .status{margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:#9fb0d8;}
+  .accentbar{height:4px;background:linear-gradient(90deg,#1d4ed8,#06b6d4);}
+  .wrap{max-width:1300px;margin:0 auto;padding:20px 20px 60px;}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 4px 22px;border-bottom:1px solid var(--line);margin-bottom:20px;}
+  .header .left{display:flex;gap:14px;align-items:center;}
+  .header .icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:22px;}
+  .header h1{margin:0;font-size:20px;font-weight:800;}
+  .header .sub{margin:2px 0 0;color:var(--sub);font-size:13px;}
+  .header .right{text-align:right;font-size:11px;color:var(--sub);}
+  .badge{background:var(--navy);color:#fff;font-size:10px;font-weight:700;padding:5px 10px;border-radius:999px;letter-spacing:.04em;}
+  .section-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;margin:26px 0 14px;padding-left:10px;border-left:4px solid #1d4ed8;}
+
+  .podium{display:grid;grid-template-columns:1fr 1.1fr 1fr;gap:16px;margin-bottom:20px;}
+  .medal-card{border-radius:16px;padding:22px 16px;text-align:center;color:#fff;position:relative;}
+  .medal-card .rank-icon{font-size:26px;}
+  .medal-card .name{font-weight:800;font-size:16px;margin-top:6px;}
+  .medal-card .sub{font-size:11px;opacity:.85;}
+  .medal-card .big{font-size:34px;font-weight:800;margin:6px 0 2px;}
+  .medal-card .foot{font-size:11px;opacity:.9;}
+  .m-silver{background:linear-gradient(160deg,#aab3c0,#6b7688);}
+  .m-gold{background:linear-gradient(160deg,#ffcf5c,#dc7f1e);}
+  .m-bronze{background:linear-gradient(160deg,#d98a4a,#8a4a1e);}
+
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:6px;}
+  .card{background:#fff;border-radius:12px;padding:16px 18px;border-left:4px solid #ccc;box-shadow:0 1px 2px rgba(15,23,42,.04);}
+  .card .lbl{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--sub);font-weight:700;letter-spacing:.03em;}
+  .card .val{font-size:26px;font-weight:800;margin-top:4px;}
+  .card .note{font-size:11px;color:var(--sub);margin-top:2px;}
+  .c1{border-color:#3b82f6;} .c2{border-color:#16a34a;} .c3{border-color:#f59e0b;} .c4{border-color:#06b6d4;}
+
+  table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;font-size:12.5px;}
+  thead th{background:var(--navy);color:#cfe0ff;text-align:left;padding:10px 10px;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;white-space:nowrap;}
+  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  tbody tr:hover{background:#f8fafc;}
+  .rank-num{width:22px;height:22px;border-radius:50%;background:#e2e8f0;color:#334155;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+  .medal{font-size:15px;}
+  .siap-bar{position:relative;background:#eef2f7;border-radius:6px;overflow:hidden;min-width:90px;}
+  .siap-bar .fill{padding:3px 8px;color:#fff;font-weight:700;font-size:11.5px;border-radius:6px;}
+  .fill-green{background:#16a34a;} .fill-amber{background:#f59e0b;} .fill-orange{background:#ea580c;} .fill-red{background:#dc2626;}
+  .pct{font-weight:700;} .pct-ok{color:#16a34a;} .pct-mid{color:#f59e0b;} .pct-low{color:#dc2626;}
+  .baki0{color:#16a34a;font-weight:700;}
+  .tablewrap{overflow-x:auto;border-radius:12px;box-shadow:0 1px 2px rgba(15,23,42,.06);}
+  .empty{padding:40px;text-align:center;color:var(--sub);}
+  .loading{padding:60px;text-align:center;color:var(--sub);font-size:13px;}
+  .spin{width:26px;height:26px;border:3px solid #dbe3f5;border-top-color:#1d4ed8;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .errbox{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:14px 18px;border-radius:10px;font-size:13px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">📊 LAPORAN INDIVIDU BE FASA 3 : SEKSYEN INDUSTRI</div>
+  <div class="filters">
+    <div class="fgroup"><label>Fasa</label><select id="f-fasa"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>Survei</label><select id="f-survei"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>Daerah</label><select id="f-daerah"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>Penyelia</label><select id="f-penyelia"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>Status Rekod</label><select id="f-statusrekod"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>Sasaran MKO%</label><input type="number" id="f-sasaran" value="45" min="0" max="100"></div>
+  </div>
+</div>
+<div class="toolrow">
+  <a href="#" id="link-borang" target="_blank">🏷️ Borang &amp; F2 Tracker</a>
+  <a href="#" id="link-sheet" target="_blank">🔗 <span id="sheet-label">docs.google.com</span></a>
+  <a href="#" id="btn-muat">🔄 Muat Semula</a>
+  <span class="status" id="status-line">Memuatkan data...</span>
+</div>
+<div class="accentbar"></div>
+
+<div class="wrap">
+  <div class="header">
+    <div class="left">
+      <div class="icon">🏆</div>
+      <div>
+        <h1>LAPORAN INDIVIDU BE FASA 3 : SEKSYEN INDUSTRI</h1>
+        <p class="sub">Laporan MKO By FE · Ranking Pencapaian MKO</p>
+      </div>
+    </div>
+    <div class="right">
+      <div class="badge">DOSM WPKL : INDUSTRI</div>
+      <div style="margin-top:8px;">Skop: <b id="scope-label">Keseluruhan</b></div>
+      <div>Kemaskini: <span id="update-time">—</span></div>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="loading"><div class="spin"></div>Memuatkan data dari Google Sheets...</div>
+  </div>
+</div>
+
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1pyb-W0moykeEARFf2rGM5A3ggu1Fj4KtLDB47gRpyn6DYp2kDcbbmUbzuqDX2sEIoKsFBVrASIaZ/pub?gid=518237575&single=true&output=csv";
+
+document.getElementById('link-sheet').href = CSV_URL.replace('/pub?','/edit#').split('&single')[0];
+document.getElementById('sheet-label').textContent = 'docs.google.com/spreadsheets';
+
+// ---- kolum: cuba beberapa nama sebab header sheet boleh berubah ----
+const COLMAP = {
+  fe:        ['FINAL FE BE','FE','Pegawai Kerja Luar'],
+  respon:    ['Status Respon','STATUS.1','Status_Respon','Kod Respons BE 2026 (Fasa 1) (Sehingga 2 Feb. 2026)'],
+  rekod:     ['Status Rekod','STATUS_REKOD','Status_Rekod'],
+  fasa:      ['Fasa BE2026','FASA','Fasa'],
+  penyelia:  ['USERNAME_PENYELIA','PENYELIA','Penyelia'],
+  daerah:    ['PBT_A','DAERAH','DISTRICT_CODE_A','CENSUS_DISTRICT_CODE_A'],
+  survei:    ['KodSurvei_KET','SURVEI','MSIC DAN KET','SUMBER_FAIL']
+};
+
+const CODES_A1 = ['11'];
+const CODES_LK = ['12','13','14','21','22','23','31','40'];
+const CODES_50 = ['50'];
+const CODES_B  = ['71','72','73','74','75','76','77'];
+
+let RAW = [];
+let HEADERS = [];
+let RESOLVED = {};
+
+function resolveCol(field){
+  const candidates = COLMAP[field];
+  for(const c of candidates){
+    const idx = HEADERS.findIndex(h => h.trim().toLowerCase() === c.trim().toLowerCase());
+    if(idx !== -1) return idx;
+  }
+  return -1;
+}
+
+function loadData(){
+  document.getElementById('status-line').textContent = 'Memuatkan data...';
+  document.getElementById('content').innerHTML = '<div class="loading"><div class="spin"></div>Memuatkan data dari Google Sheets...</div>';
+  Papa.parse(CSV_URL, {
+    download: true,
+    header: false,
+    skipEmptyLines: true,
+    complete: function(res){
+      const rows = res.data;
+      if(!rows || rows.length < 2){
+        showError('Fail CSV kosong atau tidak dapat dibaca.');
+        return;
+      }
+      HEADERS = rows[0];
+      RAW = rows.slice(1);
+      RESOLVED = {
+        fe: resolveCol('fe'), respon: resolveCol('respon'), rekod: resolveCol('rekod'),
+        fasa: resolveCol('fasa'), penyelia: resolveCol('penyelia'),
+        daerah: resolveCol('daerah'), survei: resolveCol('survei')
+      };
+      if(RESOLVED.fe === -1){
+        showError('Tidak jumpa lajur nama FE (cuba: ' + COLMAP.fe.join(', ') + '). Semak header sheet.');
+        return;
+      }
+      populateFilters();
+      document.getElementById('update-time').textContent = new Date().toLocaleString('ms-MY');
+      document.getElementById('status-line').textContent = RAW.length.toLocaleString() + ' rekod dimuatkan';
+      render();
+    },
+    error: function(err){
+      showError('Gagal fetch CSV: ' + err.message + '. Semak sambungan internet / sharing sheet.');
+    }
+  });
+}
+
+function showError(msg){
+  document.getElementById('status-line').textContent = 'Ralat';
+  document.getElementById('content').innerHTML = '<div class="errbox">⚠️ ' + msg + '</div>';
+}
+
+function uniqueVals(colIdx){
+  if(colIdx === -1) return [];
+  const set = new Set();
+  RAW.forEach(r => { const v = (r[colIdx]||'').trim(); if(v) set.add(v); });
+  return Array.from(set).sort();
+}
+
+function fillSelect(id, vals){
+  const sel = document.getElementById(id);
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Semua</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join('');
+  if(vals.includes(prev)) sel.value = prev;
+}
+
+function populateFilters(){
+  fillSelect('f-fasa', uniqueVals(RESOLVED.fasa));
+  fillSelect('f-survei', uniqueVals(RESOLVED.survei));
+  fillSelect('f-daerah', uniqueVals(RESOLVED.daerah));
+  fillSelect('f-penyelia', uniqueVals(RESOLVED.penyelia));
+  fillSelect('f-statusrekod', uniqueVals(RESOLVED.rekod));
+}
+
+function getFiltered(){
+  const fFasa = document.getElementById('f-fasa').value;
+  const fSurvei = document.getElementById('f-survei').value;
+  const fDaerah = document.getElementById('f-daerah').value;
+  const fPenyelia = document.getElementById('f-penyelia').value;
+  const fRekod = document.getElementById('f-statusrekod').value;
+
+  return RAW.filter(r => {
+    if(fFasa && RESOLVED.fasa !== -1 && (r[RESOLVED.fasa]||'').trim() !== fFasa) return false;
+    if(fSurvei && RESOLVED.survei !== -1 && (r[RESOLVED.survei]||'').trim() !== fSurvei) return false;
+    if(fDaerah && RESOLVED.daerah !== -1 && (r[RESOLVED.daerah]||'').trim() !== fDaerah) return false;
+    if(fPenyelia && RESOLVED.penyelia !== -1 && (r[RESOLVED.penyelia]||'').trim() !== fPenyelia) return false;
+    if(fRekod && RESOLVED.rekod !== -1 && (r[RESOLVED.rekod]||'').trim() !== fRekod) return false;
+    return true;
+  });
+}
+
+function bucketOf(code){
+  code = (code||'').trim();
+  if(!code) return null;
+  if(CODES_A1.includes(code)) return 'a1';
+  if(CODES_LK.includes(code)) return 'lk';
+  if(CODES_50.includes(code)) return '50';
+  if(CODES_B.includes(code)) return 'b';
+  return 'other';
+}
+
+function computeStats(rows, sasaranPct){
+  const byFE = {};
+  rows.forEach(r => {
+    const fe = (r[RESOLVED.fe]||'').trim();
+    if(!fe) return;
+    if(!byFE[fe]) byFE[fe] = { fe, tot:0, a1:0, lk:0, k50:0, b:0, siap:0 };
+    const st = byFE[fe];
+    st.tot++;
+    const code = RESOLVED.respon !== -1 ? r[RESOLVED.respon] : '';
+    const bucket = bucketOf(code);
+    if(bucket === 'a1'){ st.a1++; st.siap++; }
+    else if(bucket === 'lk'){ st.lk++; st.siap++; }
+    else if(bucket === '50'){ st.k50++; st.siap++; }
+    else if(bucket === 'b'){ st.b++; st.siap++; }
+  });
+  const list = Object.values(byFE).map(st => {
+    const pctCapai = st.tot ? (st.siap/st.tot*100) : 0;
+    const pctLK = st.tot ? (st.lk/st.tot*100) : 0;
+    const bakiSasaran = Math.max(0, Math.round(sasaranPct/100*st.tot) - st.siap);
+    return {...st, pctCapai, pctLK, bakiSasaran};
+  });
+  list.sort((a,b) => b.siap - a.siap);
+  return list;
+}
+
+function fmtPct(p){ return p.toFixed(0) + '%'; }
+
+function fillClass(p, sasaran){
+  if(p >= sasaran) return 'fill-green';
+  if(p >= sasaran*0.7) return 'fill-amber';
+  if(p >= sasaran*0.4) return 'fill-orange';
+  return 'fill-red';
+}
+function pctClass(p, sasaran){
+  if(p >= sasaran) return 'pct-ok';
+  if(p >= sasaran*0.6) return 'pct-mid';
+  return 'pct-low';
+}
+
+function render(){
+  const sasaran = parseFloat(document.getElementById('f-sasaran').value) || 45;
+  const rows = getFiltered();
+  const list = computeStats(rows, sasaran);
+
+  const totalTot = list.reduce((s,x)=>s+x.tot,0);
+  const totalSiap = list.reduce((s,x)=>s+x.siap,0);
+  const totalBaki = list.reduce((s,x)=>s+x.bakiSasaran,0);
+  const overallPct = totalTot ? (totalSiap/totalTot*100) : 0;
+
+  if(list.length === 0){
+    document.getElementById('content').innerHTML = '<div class="empty">Tiada rekod sepadan dengan filter semasa.</div>';
+    return;
+  }
+
+  const top3 = list.slice(0,3);
+  const medalOrder = top3.length === 3 ? [top3[1], top3[0], top3[2]] : top3;
+  const medalClass = top3.length === 3 ? ['m-silver','m-gold','m-bronze'] : ['m-gold','m-silver','m-bronze'];
+  const medalIcon = ['🥈','🥇','🥉'];
+
+  let podiumHtml = '<div class="podium">';
+  medalOrder.forEach((f,i) => {
+    podiumHtml += `
+      <div class="medal-card ${medalClass[i]}">
+        <div class="rank-icon">${medalIcon[i]}</div>
+        <div class="name">${f.fe}</div>
+        <div class="sub">${RESOLVED.penyelia!==-1 ? '' : ''}</div>
+        <div class="big">${f.siap.toLocaleString()}</div>
+        <div class="foot">Siap MKO · ${fmtPct(f.pctCapai)}</div>
+      </div>`;
+  });
+  podiumHtml += '</div>';
+
+  const cardsHtml = `
+    <div class="cards">
+      <div class="card c1"><div class="lbl">SASARAN SIAP MKO <span>🎯</span></div><div class="val">${sasaran}%</div><div class="note">sasaran semasa</div></div>
+      <div class="card c2"><div class="lbl">CAPAIAN SEMASA <span>✅</span></div><div class="val">${fmtPct(overallPct)}</div><div class="note">${totalSiap.toLocaleString()} / ${totalTot.toLocaleString()} kes</div></div>
+      <div class="card c3"><div class="lbl">BAKI KE SASARAN <span>📋</span></div><div class="val">${totalBaki.toLocaleString()}</div><div class="note">kes perlu siap lagi</div></div>
+      <div class="card c4"><div class="lbl">JUMLAH FE <span>👥</span></div><div class="val">${list.length}</div><div class="note">dalam skop tapisan</div></div>
+    </div>`;
+
+  let rowsHtml = '';
+  list.forEach((f, i) => {
+    const rank = i+1;
+    const medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
+    const barPct = Math.min(100, sasaran ? (f.pctCapai/sasaran*100) : 0);
+    rowsHtml += `
+      <tr>
+        <td>${medal ? `<span class="medal">${medal}</span>` : `<span class="rank-num">${rank}</span>`}</td>
+        <td><b>${f.fe}</b></td>
+        <td>${f.tot.toLocaleString()}</td>
+        <td>${f.a1.toLocaleString()}</td>
+        <td>${f.lk.toLocaleString()}</td>
+        <td>${fmtPct(f.pctLK)}</td>
+        <td>${f.k50.toLocaleString()}</td>
+        <td>${f.b.toLocaleString()}</td>
+        <td><div class="siap-bar"><div class="fill ${fillClass(f.pctCapai, sasaran)}" style="width:${Math.max(barPct,18)}%">${f.siap.toLocaleString()}</div></div></td>
+        <td><span class="pct ${pctClass(f.pctCapai, sasaran)}">${fmtPct(f.pctCapai)}</span></td>
+        <td>${f.bakiSasaran===0 ? '<span class="baki0">0</span>' : f.bakiSasaran.toLocaleString()}</td>
+      </tr>`;
+  });
+
+  const tableHtml = `
+    <div class="tablewrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>Nama FE</th><th>Agihan</th><th>Kod 11 (A1)</th><th>LK</th><th>%LK</th>
+        <th>Kod 50</th><th>Kod B</th><th>Siap MKO (Kod A)</th><th>% Capai</th><th>Baki ke Sasaran</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    </div>`;
+
+  document.getElementById('content').innerHTML =
+    '<div class="section-title">🏆 Kedudukan Teratas · Siap MKO</div>' + podiumHtml +
+    cardsHtml +
+    '<div class="section-title">📋 Ranking Penuh — MKO Pegawai Lapangan (FE) (ikut Siap MKO terbanyak)</div>' +
+    tableHtml;
+}
+
+['f-fasa','f-survei','f-daerah','f-penyelia','f-statusrekod','f-sasaran'].forEach(id => {
+  document.getElementById(id).addEventListener('change', render);
+  document.getElementById(id).addEventListener('input', render);
+});
+document.getElementById('btn-muat').addEventListener('click', (e)=>{ e.preventDefault(); loadData(); });
+
+loadData();
+</script>
+</body>
+</html>
