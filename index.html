@@ -128,8 +128,8 @@ document.getElementById('sheet-label').textContent = 'docs.google.com/spreadshee
 // ---- kolum: cuba beberapa nama sebab header sheet boleh berubah ----
 const COLMAP = {
   fe:        ['FINAL FE BE','FE','Pegawai Kerja Luar'],
-  respon:    ['Status Respon','STATUS.1','Status_Respon','Kod Respons BE 2026 (Fasa 1) (Sehingga 2 Feb. 2026)'],
-  rekod:     ['Status Rekod','STATUS_REKOD','Status_Rekod'],
+  respon:    ['Status Respon','Status_Respon','Kod Respons BE 2026 (Fasa 1) (Sehingga 2 Feb. 2026)'],
+  rekod:     ['Status Rekod','STATUS_REKOD','Status_Rekod','STATUS.1'],
   fasa:      ['Fasa BE2026','FASA','Fasa'],
   penyelia:  ['USERNAME_PENYELIA','PENYELIA','Penyelia'],
   daerah:    ['PBT_A','DAERAH','DISTRICT_CODE_A','CENSUS_DISTRICT_CODE_A'],
@@ -236,6 +236,8 @@ function getFiltered(){
 function bucketOf(code){
   code = (code||'').trim();
   if(!code) return null;
+  const m = code.match(/^(\d+)/);
+  code = m ? m[1] : code;
   if(CODES_A1.includes(code)) return 'a1';
   if(CODES_LK.includes(code)) return 'lk';
   if(CODES_50.includes(code)) return '50';
@@ -245,10 +247,11 @@ function bucketOf(code){
 
 function computeStats(rows, sasaranPct){
   const byFE = {};
+  const rekodSet = new Set();
   rows.forEach(r => {
     const fe = (r[RESOLVED.fe]||'').trim();
     if(!fe) return;
-    if(!byFE[fe]) byFE[fe] = { fe, tot:0, a1:0, lk:0, k50:0, b:0, siap:0 };
+    if(!byFE[fe]) byFE[fe] = { fe, tot:0, a1:0, lk:0, k50:0, b:0, siap:0, rekod:{} };
     const st = byFE[fe];
     st.tot++;
     const code = RESOLVED.respon !== -1 ? r[RESOLVED.respon] : '';
@@ -257,7 +260,14 @@ function computeStats(rows, sasaranPct){
     else if(bucket === 'lk'){ st.lk++; st.siap++; }
     else if(bucket === '50'){ st.k50++; st.siap++; }
     else if(bucket === 'b'){ st.b++; st.siap++; }
+
+    const rekodVal = RESOLVED.rekod !== -1 ? (r[RESOLVED.rekod]||'').trim() : '';
+    if(rekodVal){
+      rekodSet.add(rekodVal);
+      st.rekod[rekodVal] = (st.rekod[rekodVal]||0) + 1;
+    }
   });
+  const rekodValues = Array.from(rekodSet).sort();
   const list = Object.values(byFE).map(st => {
     const pctCapai = st.tot ? (st.siap/st.tot*100) : 0;
     const pctLK = st.tot ? (st.lk/st.tot*100) : 0;
@@ -265,7 +275,7 @@ function computeStats(rows, sasaranPct){
     return {...st, pctCapai, pctLK, bakiSasaran};
   });
   list.sort((a,b) => b.siap - a.siap);
-  return list;
+  return { list, rekodValues };
 }
 
 function fmtPct(p){ return p.toFixed(0) + '%'; }
@@ -285,7 +295,7 @@ function pctClass(p, sasaran){
 function render(){
   const sasaran = parseFloat(document.getElementById('f-sasaran').value) || 45;
   const rows = getFiltered();
-  const list = computeStats(rows, sasaran);
+  const { list, rekodValues } = computeStats(rows, sasaran);
 
   const totalTot = list.reduce((s,x)=>s+x.tot,0);
   const totalSiap = list.reduce((s,x)=>s+x.siap,0);
@@ -328,6 +338,7 @@ function render(){
     const rank = i+1;
     const medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
     const barPct = Math.min(100, sasaran ? (f.pctCapai/sasaran*100) : 0);
+    const rekodTds = rekodValues.map(rv => `<td>${(f.rekod[rv]||0).toLocaleString()}</td>`).join('');
     rowsHtml += `
       <tr>
         <td>${medal ? `<span class="medal">${medal}</span>` : `<span class="rank-num">${rank}</span>`}</td>
@@ -341,15 +352,18 @@ function render(){
         <td><div class="siap-bar"><div class="fill ${fillClass(f.pctCapai, sasaran)}" style="width:${Math.max(barPct,18)}%">${f.siap.toLocaleString()}</div></div></td>
         <td><span class="pct ${pctClass(f.pctCapai, sasaran)}">${fmtPct(f.pctCapai)}</span></td>
         <td>${f.bakiSasaran===0 ? '<span class="baki0">0</span>' : f.bakiSasaran.toLocaleString()}</td>
+        ${rekodTds}
       </tr>`;
   });
 
+  const rekodHeaders = rekodValues.map(rv => `<th>${rv}</th>`).join('');
   const tableHtml = `
     <div class="tablewrap">
     <table>
       <thead><tr>
         <th>#</th><th>Nama FE</th><th>Agihan</th><th>Kod 11 (A1)</th><th>LK</th><th>%LK</th>
         <th>Kod 50</th><th>Kod B</th><th>Siap MKO (Kod A)</th><th>% Capai</th><th>Baki ke Sasaran</th>
+        ${rekodHeaders}
       </tr></thead>
       <tbody>${rowsHtml}</tbody>
     </table>
