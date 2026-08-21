@@ -26,6 +26,16 @@
   .fgroup label{font-size:9px;letter-spacing:.06em;color:#9fb0d8;text-transform:uppercase;font-weight:600;}
   .fgroup select, .fgroup input{background:#16204a;color:#fff;border:1px solid #2a3a72;border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit;min-width:110px;}
   .fgroup input[type=number]{width:64px;min-width:64px;}
+  .multiselect{position:relative;}
+  .ms-btn{background:#16204a;color:#fff;border:1px solid #2a3a72;border-radius:6px;padding:6px 8px;font-size:12px;font-family:inherit;min-width:110px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:6px;}
+  .ms-btn:after{content:'▾';font-size:9px;opacity:.7;}
+  .ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;background:#0f1c46;border:1px solid #2a3a72;border-radius:8px;padding:8px;min-width:190px;max-height:240px;overflow-y:auto;z-index:50;box-shadow:0 8px 20px rgba(0,0,0,.35);}
+  .ms-panel.open{display:block;}
+  .ms-panel label{display:flex;align-items:center;gap:7px;color:#e2e8f0;font-size:12px;padding:4px 4px;border-radius:4px;cursor:pointer;white-space:nowrap;}
+  .ms-panel label:hover{background:#1a2a5c;}
+  .ms-panel input[type=checkbox]{accent-color:#3b82f6;}
+  .ms-actions{display:flex;gap:8px;padding:4px 4px 6px;border-bottom:1px solid #2a3a72;margin-bottom:4px;}
+  .ms-actions a{font-size:10.5px;color:#8fb3ff;cursor:pointer;text-decoration:underline;}
   .toolrow{background:var(--navy2);color:#cfe0ff;padding:8px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;}
   .toolrow a{color:#cfe0ff;text-decoration:none;background:#1a2a5c;padding:5px 10px;border-radius:6px;display:flex;align-items:center;gap:6px;}
   .toolrow .status{margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:#9fb0d8;}
@@ -82,12 +92,17 @@
 <div class="topbar">
   <div class="brand">📊 LAPORAN INDIVIDU BE FASA 3 : SEKSYEN INDUSTRI</div>
   <div class="filters">
-    <div class="fgroup"><label>Survei</label><select id="f-survei"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>Survei</label>
+      <div class="multiselect" id="ms-survei"><button type="button" class="ms-btn"><span class="ms-label">Semua</span></button><div class="ms-panel"></div></div>
+    </div>
     <div class="fgroup"><label>Penyelia</label><select id="f-penyelia"><option value="">Semua</option></select></div>
     <div class="fgroup"><label>Status Rekod</label><select id="f-statusrekod"><option value="">Semua</option></select></div>
-    <div class="fgroup"><label>Tier</label><select id="f-tier"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>Tier</label>
+      <div class="multiselect" id="ms-tier"><button type="button" class="ms-btn"><span class="ms-label">Semua</span></button><div class="ms-panel"></div></div>
+    </div>
     <div class="fgroup"><label>PPMAS</label><select id="f-ppmas"><option value="">Semua</option></select></div>
     <div class="fgroup"><label>Sumber Fail</label><select id="f-sumberfail"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>Tetap/PMS</label><select id="f-tetappms"><option value="">Semua</option></select></div>
   </div>
 </div>
 <div class="toolrow">
@@ -134,7 +149,8 @@ const COLMAP = {
   survei:    ['KodSurvei_KET','SURVEI','MSIC DAN KET'],
   tier:      ['TIER','Tier'],
   ppmas:     ['PPMAS'],
-  sumberfail:['SUMBER_FAIL','SUMBER FAIL']
+  sumberfail:['SUMBER_FAIL','SUMBER FAIL'],
+  tetappms:  ['TETAP/PMS','TETAP_PMS','STATUS_PEGAWAI','JENIS_PEGAWAI','Tetap/PMS']
 };
 
 const CODES_A1 = ['11'];
@@ -173,7 +189,8 @@ function loadData(){
       RESOLVED = {
         fe: resolveCol('fe'), respon: resolveCol('respon'), rekod: resolveCol('rekod'),
         penyelia: resolveCol('penyelia'), survei: resolveCol('survei'),
-        tier: resolveCol('tier'), ppmas: resolveCol('ppmas'), sumberfail: resolveCol('sumberfail')
+        tier: resolveCol('tier'), ppmas: resolveCol('ppmas'), sumberfail: resolveCol('sumberfail'),
+        tetappms: resolveCol('tetappms')
       };
       if(RESOLVED.fe === -1){
         showError('Tidak jumpa lajur nama FE (cuba: ' + COLMAP.fe.join(', ') + '). Semak header sheet.');
@@ -209,30 +226,80 @@ function fillSelect(id, vals){
   if(vals.includes(prev)) sel.value = prev;
 }
 
+const selectedSurvei = new Set();
+const selectedTier = new Set();
+
+function buildMultiselect(msId, values, selectedSet){
+  const root = document.getElementById(msId);
+  const btn = root.querySelector('.ms-btn');
+  const lbl = root.querySelector('.ms-label');
+  const panel = root.querySelector('.ms-panel');
+
+  // buang nilai terpilih yang dah tak wujud dalam data semasa
+  Array.from(selectedSet).forEach(v => { if(!values.includes(v)) selectedSet.delete(v); });
+
+  panel.innerHTML = `
+    <div class="ms-actions"><a data-act="all">Pilih Semua</a><a data-act="none">Kosongkan</a></div>
+    ${values.map(v => `<label><input type="checkbox" value="${v}" ${selectedSet.has(v)?'checked':''}> ${v}</label>`).join('')}`;
+
+  function updateLabel(){
+    lbl.textContent = selectedSet.size === 0 ? 'Semua' : (selectedSet.size + ' dipilih');
+  }
+  updateLabel();
+
+  panel.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if(cb.checked) selectedSet.add(cb.value); else selectedSet.delete(cb.value);
+      updateLabel();
+      render();
+    });
+  });
+  panel.querySelector('[data-act="all"]').addEventListener('click', () => {
+    values.forEach(v => selectedSet.add(v));
+    panel.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = true);
+    updateLabel(); render();
+  });
+  panel.querySelector('[data-act="none"]').addEventListener('click', () => {
+    selectedSet.clear();
+    panel.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+    updateLabel(); render();
+  });
+
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.ms-panel.open').forEach(p => { if(p !== panel) p.classList.remove('open'); });
+    panel.classList.toggle('open');
+  };
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('.ms-panel.open').forEach(p => p.classList.remove('open'));
+});
+
 function populateFilters(){
-  fillSelect('f-survei', uniqueVals(RESOLVED.survei));
+  buildMultiselect('ms-survei', uniqueVals(RESOLVED.survei), selectedSurvei);
+  buildMultiselect('ms-tier', uniqueVals(RESOLVED.tier), selectedTier);
   fillSelect('f-penyelia', uniqueVals(RESOLVED.penyelia));
   fillSelect('f-statusrekod', uniqueVals(RESOLVED.rekod));
-  fillSelect('f-tier', uniqueVals(RESOLVED.tier));
   fillSelect('f-ppmas', uniqueVals(RESOLVED.ppmas));
   fillSelect('f-sumberfail', uniqueVals(RESOLVED.sumberfail));
+  fillSelect('f-tetappms', uniqueVals(RESOLVED.tetappms));
 }
 
 function getFiltered(){
-  const fSurvei = document.getElementById('f-survei').value;
   const fPenyelia = document.getElementById('f-penyelia').value;
   const fRekod = document.getElementById('f-statusrekod').value;
-  const fTier = document.getElementById('f-tier').value;
   const fPpmas = document.getElementById('f-ppmas').value;
   const fSumberFail = document.getElementById('f-sumberfail').value;
+  const fTetapPms = document.getElementById('f-tetappms').value;
 
   return RAW.filter(r => {
-    if(fSurvei && RESOLVED.survei !== -1 && (r[RESOLVED.survei]||'').trim() !== fSurvei) return false;
+    if(selectedSurvei.size > 0 && RESOLVED.survei !== -1 && !selectedSurvei.has((r[RESOLVED.survei]||'').trim())) return false;
+    if(selectedTier.size > 0 && RESOLVED.tier !== -1 && !selectedTier.has((r[RESOLVED.tier]||'').trim())) return false;
     if(fPenyelia && RESOLVED.penyelia !== -1 && (r[RESOLVED.penyelia]||'').trim() !== fPenyelia) return false;
     if(fRekod && RESOLVED.rekod !== -1 && (r[RESOLVED.rekod]||'').trim() !== fRekod) return false;
-    if(fTier && RESOLVED.tier !== -1 && (r[RESOLVED.tier]||'').trim() !== fTier) return false;
     if(fPpmas && RESOLVED.ppmas !== -1 && (r[RESOLVED.ppmas]||'').trim() !== fPpmas) return false;
     if(fSumberFail && RESOLVED.sumberfail !== -1 && (r[RESOLVED.sumberfail]||'').trim() !== fSumberFail) return false;
+    if(fTetapPms && RESOLVED.tetappms !== -1 && (r[RESOLVED.tetappms]||'').trim() !== fTetapPms) return false;
     return true;
   });
 }
@@ -378,7 +445,7 @@ function render(){
     tableHtml;
 }
 
-['f-survei','f-penyelia','f-statusrekod','f-tier','f-ppmas','f-sumberfail'].forEach(id => {
+['f-penyelia','f-statusrekod','f-ppmas','f-sumberfail','f-tetappms'].forEach(id => {
   document.getElementById(id).addEventListener('change', render);
 });
 document.getElementById('btn-muat').addEventListener('click', (e)=>{ e.preventDefault(); loadData(); });
