@@ -82,12 +82,12 @@
 <div class="topbar">
   <div class="brand">📊 LAPORAN INDIVIDU BE FASA 3 : SEKSYEN INDUSTRI</div>
   <div class="filters">
-    <div class="fgroup"><label>Fasa</label><select id="f-fasa"><option value="">Semua</option></select></div>
     <div class="fgroup"><label>Survei</label><select id="f-survei"><option value="">Semua</option></select></div>
-    <div class="fgroup"><label>Daerah</label><select id="f-daerah"><option value="">Semua</option></select></div>
     <div class="fgroup"><label>Penyelia</label><select id="f-penyelia"><option value="">Semua</option></select></div>
     <div class="fgroup"><label>Status Rekod</label><select id="f-statusrekod"><option value="">Semua</option></select></div>
-    <div class="fgroup"><label>Sasaran MKO%</label><input type="number" id="f-sasaran" value="45" min="0" max="100"></div>
+    <div class="fgroup"><label>Tier</label><select id="f-tier"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>PPMAS</label><select id="f-ppmas"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>Sumber Fail</label><select id="f-sumberfail"><option value="">Semua</option></select></div>
   </div>
 </div>
 <div class="toolrow">
@@ -130,10 +130,11 @@ const COLMAP = {
   fe:        ['FINAL FE BE','FE','Pegawai Kerja Luar'],
   respon:    ['Status Respon','Status_Respon','Kod Respons BE 2026 (Fasa 1) (Sehingga 2 Feb. 2026)'],
   rekod:     ['Status Rekod','STATUS_REKOD','Status_Rekod','STATUS.1'],
-  fasa:      ['Fasa BE2026','FASA','Fasa'],
   penyelia:  ['USERNAME_PENYELIA','PENYELIA','Penyelia'],
-  daerah:    ['PBT_A','DAERAH','DISTRICT_CODE_A','CENSUS_DISTRICT_CODE_A'],
-  survei:    ['KodSurvei_KET','SURVEI','MSIC DAN KET','SUMBER_FAIL']
+  survei:    ['KodSurvei_KET','SURVEI','MSIC DAN KET'],
+  tier:      ['TIER','Tier'],
+  ppmas:     ['PPMAS'],
+  sumberfail:['SUMBER_FAIL','SUMBER FAIL']
 };
 
 const CODES_A1 = ['11'];
@@ -171,8 +172,8 @@ function loadData(){
       RAW = rows.slice(1);
       RESOLVED = {
         fe: resolveCol('fe'), respon: resolveCol('respon'), rekod: resolveCol('rekod'),
-        fasa: resolveCol('fasa'), penyelia: resolveCol('penyelia'),
-        daerah: resolveCol('daerah'), survei: resolveCol('survei')
+        penyelia: resolveCol('penyelia'), survei: resolveCol('survei'),
+        tier: resolveCol('tier'), ppmas: resolveCol('ppmas'), sumberfail: resolveCol('sumberfail')
       };
       if(RESOLVED.fe === -1){
         showError('Tidak jumpa lajur nama FE (cuba: ' + COLMAP.fe.join(', ') + '). Semak header sheet.');
@@ -209,26 +210,29 @@ function fillSelect(id, vals){
 }
 
 function populateFilters(){
-  fillSelect('f-fasa', uniqueVals(RESOLVED.fasa));
   fillSelect('f-survei', uniqueVals(RESOLVED.survei));
-  fillSelect('f-daerah', uniqueVals(RESOLVED.daerah));
   fillSelect('f-penyelia', uniqueVals(RESOLVED.penyelia));
   fillSelect('f-statusrekod', uniqueVals(RESOLVED.rekod));
+  fillSelect('f-tier', uniqueVals(RESOLVED.tier));
+  fillSelect('f-ppmas', uniqueVals(RESOLVED.ppmas));
+  fillSelect('f-sumberfail', uniqueVals(RESOLVED.sumberfail));
 }
 
 function getFiltered(){
-  const fFasa = document.getElementById('f-fasa').value;
   const fSurvei = document.getElementById('f-survei').value;
-  const fDaerah = document.getElementById('f-daerah').value;
   const fPenyelia = document.getElementById('f-penyelia').value;
   const fRekod = document.getElementById('f-statusrekod').value;
+  const fTier = document.getElementById('f-tier').value;
+  const fPpmas = document.getElementById('f-ppmas').value;
+  const fSumberFail = document.getElementById('f-sumberfail').value;
 
   return RAW.filter(r => {
-    if(fFasa && RESOLVED.fasa !== -1 && (r[RESOLVED.fasa]||'').trim() !== fFasa) return false;
     if(fSurvei && RESOLVED.survei !== -1 && (r[RESOLVED.survei]||'').trim() !== fSurvei) return false;
-    if(fDaerah && RESOLVED.daerah !== -1 && (r[RESOLVED.daerah]||'').trim() !== fDaerah) return false;
     if(fPenyelia && RESOLVED.penyelia !== -1 && (r[RESOLVED.penyelia]||'').trim() !== fPenyelia) return false;
     if(fRekod && RESOLVED.rekod !== -1 && (r[RESOLVED.rekod]||'').trim() !== fRekod) return false;
+    if(fTier && RESOLVED.tier !== -1 && (r[RESOLVED.tier]||'').trim() !== fTier) return false;
+    if(fPpmas && RESOLVED.ppmas !== -1 && (r[RESOLVED.ppmas]||'').trim() !== fPpmas) return false;
+    if(fSumberFail && RESOLVED.sumberfail !== -1 && (r[RESOLVED.sumberfail]||'').trim() !== fSumberFail) return false;
     return true;
   });
 }
@@ -245,7 +249,7 @@ function bucketOf(code){
   return 'other';
 }
 
-function computeStats(rows, sasaranPct){
+function computeStats(rows){
   const byFE = {};
   const rekodSet = new Set();
   rows.forEach(r => {
@@ -271,8 +275,8 @@ function computeStats(rows, sasaranPct){
   const list = Object.values(byFE).map(st => {
     const pctCapai = st.tot ? (st.siap/st.tot*100) : 0;
     const pctLK = st.tot ? (st.lk/st.tot*100) : 0;
-    const bakiSasaran = Math.max(0, Math.round(sasaranPct/100*st.tot) - st.siap);
-    return {...st, pctCapai, pctLK, bakiSasaran};
+    const bakiKes = Math.max(0, st.tot - st.siap);
+    return {...st, pctCapai, pctLK, bakiKes};
   });
   list.sort((a,b) => b.siap - a.siap);
   return { list, rekodValues };
@@ -280,26 +284,25 @@ function computeStats(rows, sasaranPct){
 
 function fmtPct(p){ return p.toFixed(0) + '%'; }
 
-function fillClass(p, sasaran){
-  if(p >= sasaran) return 'fill-green';
-  if(p >= sasaran*0.7) return 'fill-amber';
-  if(p >= sasaran*0.4) return 'fill-orange';
+function fillClass(p){
+  if(p >= 80) return 'fill-green';
+  if(p >= 50) return 'fill-amber';
+  if(p >= 25) return 'fill-orange';
   return 'fill-red';
 }
-function pctClass(p, sasaran){
-  if(p >= sasaran) return 'pct-ok';
-  if(p >= sasaran*0.6) return 'pct-mid';
+function pctClass(p){
+  if(p >= 80) return 'pct-ok';
+  if(p >= 50) return 'pct-mid';
   return 'pct-low';
 }
 
 function render(){
-  const sasaran = parseFloat(document.getElementById('f-sasaran').value) || 45;
   const rows = getFiltered();
-  const { list, rekodValues } = computeStats(rows, sasaran);
+  const { list, rekodValues } = computeStats(rows);
 
   const totalTot = list.reduce((s,x)=>s+x.tot,0);
   const totalSiap = list.reduce((s,x)=>s+x.siap,0);
-  const totalBaki = list.reduce((s,x)=>s+x.bakiSasaran,0);
+  const totalBaki = list.reduce((s,x)=>s+x.bakiKes,0);
   const overallPct = totalTot ? (totalSiap/totalTot*100) : 0;
 
   if(list.length === 0){
@@ -318,18 +321,17 @@ function render(){
       <div class="medal-card ${medalClass[i]}">
         <div class="rank-icon">${medalIcon[i]}</div>
         <div class="name">${f.fe}</div>
-        <div class="sub">${RESOLVED.penyelia!==-1 ? '' : ''}</div>
         <div class="big">${f.siap.toLocaleString()}</div>
-        <div class="foot">Siap MKO · ${fmtPct(f.pctCapai)}</div>
+        <div class="foot">Siap MKO (A+B) · ${fmtPct(f.pctCapai)}</div>
       </div>`;
   });
   podiumHtml += '</div>';
 
   const cardsHtml = `
     <div class="cards">
-      <div class="card c1"><div class="lbl">SASARAN SIAP MKO <span>🎯</span></div><div class="val">${sasaran}%</div><div class="note">sasaran semasa</div></div>
-      <div class="card c2"><div class="lbl">CAPAIAN SEMASA <span>✅</span></div><div class="val">${fmtPct(overallPct)}</div><div class="note">${totalSiap.toLocaleString()} / ${totalTot.toLocaleString()} kes</div></div>
-      <div class="card c3"><div class="lbl">BAKI KE SASARAN <span>📋</span></div><div class="val">${totalBaki.toLocaleString()}</div><div class="note">kes perlu siap lagi</div></div>
+      <div class="card c1"><div class="lbl">JUMLAH AGIHAN <span>📦</span></div><div class="val">${totalTot.toLocaleString()}</div></div>
+      <div class="card c2"><div class="lbl">SIAP MKO (A+B) <span>✅</span></div><div class="val">${totalSiap.toLocaleString()}</div><div class="note">${fmtPct(overallPct)} drpd jumlah agihan</div></div>
+      <div class="card c3"><div class="lbl">BAKI KES <span>📋</span></div><div class="val">${totalBaki.toLocaleString()}</div></div>
       <div class="card c4"><div class="lbl">JUMLAH FE <span>👥</span></div><div class="val">${list.length}</div><div class="note">dalam skop tapisan</div></div>
     </div>`;
 
@@ -337,7 +339,7 @@ function render(){
   list.forEach((f, i) => {
     const rank = i+1;
     const medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
-    const barPct = Math.min(100, sasaran ? (f.pctCapai/sasaran*100) : 0);
+    const barPct = Math.min(100, f.pctCapai);
     const rekodTds = rekodValues.map(rv => `<td>${(f.rekod[rv]||0).toLocaleString()}</td>`).join('');
     rowsHtml += `
       <tr>
@@ -349,9 +351,9 @@ function render(){
         <td>${fmtPct(f.pctLK)}</td>
         <td>${f.k50.toLocaleString()}</td>
         <td>${f.b.toLocaleString()}</td>
-        <td><div class="siap-bar"><div class="fill ${fillClass(f.pctCapai, sasaran)}" style="width:${Math.max(barPct,18)}%">${f.siap.toLocaleString()}</div></div></td>
-        <td><span class="pct ${pctClass(f.pctCapai, sasaran)}">${fmtPct(f.pctCapai)}</span></td>
-        <td>${f.bakiSasaran===0 ? '<span class="baki0">0</span>' : f.bakiSasaran.toLocaleString()}</td>
+        <td><div class="siap-bar"><div class="fill ${fillClass(f.pctCapai)}" style="width:${Math.max(barPct,18)}%">${f.siap.toLocaleString()}</div></div></td>
+        <td><span class="pct ${pctClass(f.pctCapai)}">${fmtPct(f.pctCapai)}</span></td>
+        <td>${f.bakiKes===0 ? '<span class="baki0">0</span>' : f.bakiKes.toLocaleString()}</td>
         ${rekodTds}
       </tr>`;
   });
@@ -362,7 +364,7 @@ function render(){
     <table>
       <thead><tr>
         <th>#</th><th>Nama FE</th><th>Agihan</th><th>Kod 11 (A1)</th><th>LK</th><th>%LK</th>
-        <th>Kod 50</th><th>Kod B</th><th>Siap MKO (Kod A)</th><th>% Capai</th><th>Baki ke Sasaran</th>
+        <th>Kod 50</th><th>Kod B</th><th>Siap MKO (A+B)</th><th>% Capai</th><th>Baki Kes</th>
         ${rekodHeaders}
       </tr></thead>
       <tbody>${rowsHtml}</tbody>
@@ -376,9 +378,8 @@ function render(){
     tableHtml;
 }
 
-['f-fasa','f-survei','f-daerah','f-penyelia','f-statusrekod','f-sasaran'].forEach(id => {
+['f-survei','f-penyelia','f-statusrekod','f-tier','f-ppmas','f-sumberfail'].forEach(id => {
   document.getElementById(id).addEventListener('change', render);
-  document.getElementById(id).addEventListener('input', render);
 });
 document.getElementById('btn-muat').addEventListener('click', (e)=>{ e.preventDefault(); loadData(); });
 
