@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carian No Siri / Nama Pertubuhan — BE Fasa 3 : Seksyen Industri</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  :root{
+    --navy:#0c1a3d; --navy2:#13245c;
+    --ink:#0f172a; --sub:#64748b; --line:#e6e9f0; --bg:#eef1f7;
+    --green:#16a34a; --amber:#f59e0b; --red:#e11d48;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);}
+  .topbar{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+  .topbar .brand{font-weight:800;font-size:16px;margin-right:auto;}
+  .topbar a{color:#cfe0ff;text-decoration:none;background:#1a2a5c;padding:7px 12px;border-radius:6px;font-size:12px;}
+  .accentbar{height:4px;background:linear-gradient(90deg,#1d4ed8,#06b6d4);}
+  .wrap{max-width:1200px;margin:0 auto;padding:20px 20px 60px;}
+  .section-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;margin:26px 0 14px;padding-left:10px;border-left:4px solid #1d4ed8;}
+
+  .sectorgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .sc{background:#fff;border-radius:12px;padding:16px 16px;border-left:4px solid #1d4ed8;box-shadow:0 1px 2px rgba(15,23,42,.05);}
+  .sc h3{margin:0 0 2px;font-size:12.5px;font-weight:800;}
+  .sc .codes{font-size:10.5px;color:var(--sub);margin-bottom:10px;font-family:'DM Mono',monospace;}
+  .sc .row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-top:1px dashed var(--line);}
+  .sc .row b{font-size:13px;}
+  .sc .row.tot{border-top:none;font-weight:800;font-size:13px;}
+
+  .searchbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+  .searchbar input{flex:1;min-width:260px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;background:#fff;}
+  .searchbar .count{font-size:12px;color:var(--sub);white-space:nowrap;}
+
+  .tablewrap{overflow-x:auto;border-radius:12px;box-shadow:0 1px 2px rgba(15,23,42,.06);}
+  table{width:100%;border-collapse:collapse;background:#fff;font-size:12.5px;}
+  thead th{background:var(--navy);color:#cfe0ff;text-align:left;padding:10px 10px;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;white-space:normal;line-height:1.35;}
+  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);}
+  tbody tr:hover{background:#f8fafc;}
+  .badge-code{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:700;}
+  .bc-a1{background:#dcfce7;color:#15803d;}
+  .bc-lk{background:#fef3c7;color:#a16207;}
+  .bc-b{background:#fee2e2;color:#b91c1c;}
+  .bc-other{background:#e2e8f0;color:#475569;}
+  .loading{padding:60px;text-align:center;color:var(--sub);font-size:13px;}
+  .spin{width:26px;height:26px;border:3px solid #dbe3f5;border-top-color:#1d4ed8;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .empty{padding:40px;text-align:center;color:var(--sub);}
+  .errbox{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:14px 18px;border-radius:10px;font-size:13px;}
+  .hint{font-size:11.5px;color:var(--sub);margin:-6px 0 16px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">🔎 CARIAN NO SIRI / NAMA PERTUBUHAN — BE FASA 3 : SEKSYEN INDUSTRI</div>
+  <a href="index.html">← Kembali ke Laporan Ranking</a>
+</div>
+<div class="accentbar"></div>
+
+<div class="wrap">
+  <div class="section-title">📊 Analisis Sektor</div>
+  <div id="sector-area"><div class="loading"><div class="spin"></div>Memuatkan data...</div></div>
+
+  <div class="section-title">🔎 Carian Rekod</div>
+  <p class="hint">Taip No Siri atau Nama Pertubuhan (carian sebahagian, tak case-sensitive).</p>
+  <div class="searchbar">
+    <input type="text" id="search-box" placeholder="Cth: 443223 atau LINDDALE...">
+    <span class="count" id="result-count"></span>
+  </div>
+  <div id="result-area"></div>
+</div>
+
+<script>
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1pyb-W0moykeEARFf2rGM5A3ggu1Fj4KtLDB47gRpyn6DYp2kDcbbmUbzuqDX2sEIoKsFBVrASIaZ/pub?gid=518237575&single=true&output=csv";
+
+const COLMAP = {
+  noSiri:    ['NO SIRI','NO_SIRI','No Siri'],
+  nama:      ['REGISTERED_NAME','TRADING_NAME','NAMA_PERTUBUHAN','Nama Pertubuhan'],
+  fe:        ['FINAL FE BE','FE','Pegawai Kerja Luar'],
+  respon:    ['Status Respon','Status_Respon','Kod Respons BE 2026 (Fasa 1) (Sehingga 2 Feb. 2026)'],
+  rekod:     ['Status Rekod','STATUS_REKOD','Status_Rekod','STATUS.1'],
+  survei:    ['KodSurvei_KET','SURVEI','MSIC DAN KET']
+};
+
+const CODES_A1 = ['11'];
+const CODES_LK = ['12','13','14','21','22','23','31','40'];
+const CODES_B  = ['71','72','73','74','75','76','77'];
+
+const SECTORS = [
+  { name:'Pembinaan', codes:['206'] },
+  { name:'Pembuatan', codes:['205'] },
+  { name:'Pertanian', codes:['101','103','104','105'] },
+  { name:'Perlombongan & Perkuarian', codes:['200','207'] }
+];
+
+let RAW = [], HEADERS = [], RESOLVED = {};
+
+function resolveCol(field){
+  for(const c of COLMAP[field]){
+    const idx = HEADERS.findIndex(h => h.trim().toLowerCase() === c.trim().toLowerCase());
+    if(idx !== -1) return idx;
+  }
+  return -1;
+}
+function leadingCode(v){
+  v = (v||'').trim();
+  const m = v.match(/^(\d+)/);
+  return m ? m[1] : v;
+}
+function bucketOf(v){
+  const code = leadingCode(v);
+  if(CODES_A1.includes(code)) return 'a1';
+  if(CODES_LK.includes(code)) return 'lk';
+  if(CODES_B.includes(code)) return 'b';
+  return 'other';
+}
+function codeBadge(v){
+  const b = bucketOf(v);
+  const cls = b==='a1'?'bc-a1':b==='lk'?'bc-lk':b==='b'?'bc-b':'bc-other';
+  return `<span class="badge-code ${cls}">${v ? v : '—'}</span>`;
+}
+
+function loadData(){
+  Papa.parse(CSV_URL, {
+    download:true, header:false, skipEmptyLines:true,
+    complete:function(res){
+      const rows = res.data;
+      if(!rows || rows.length < 2){ showError('Fail CSV kosong.'); return; }
+      HEADERS = rows[0];
+      RAW = rows.slice(1);
+      RESOLVED = {
+        noSiri: resolveCol('noSiri'), nama: resolveCol('nama'), fe: resolveCol('fe'),
+        respon: resolveCol('respon'), rekod: resolveCol('rekod'), survei: resolveCol('survei')
+      };
+      renderSectors();
+      renderResults('');
+    },
+    error:function(err){ showError('Gagal fetch CSV: '+err.message); }
+  });
+}
+function showError(msg){
+  document.getElementById('sector-area').innerHTML = '<div class="errbox">⚠️ '+msg+'</div>';
+  document.getElementById('result-area').innerHTML = '';
+}
+
+function renderSectors(){
+  const totals = { tot:0, a1:0, lk:0, b:0 };
+  const bySector = SECTORS.map(s => ({ ...s, tot:0, a1:0, lk:0, b:0 }));
+
+  RAW.forEach(r => {
+    totals.tot++;
+    const bucket = RESOLVED.respon !== -1 ? bucketOf(r[RESOLVED.respon]) : 'other';
+    if(bucket==='a1') totals.a1++;
+    else if(bucket==='lk') totals.lk++;
+    else if(bucket==='b') totals.b++;
+
+    if(RESOLVED.survei !== -1){
+      const sCode = leadingCode(r[RESOLVED.survei]);
+      const sector = bySector.find(s => s.codes.includes(sCode));
+      if(sector){
+        sector.tot++;
+        if(bucket==='a1') sector.a1++;
+        else if(bucket==='lk') sector.lk++;
+        else if(bucket==='b') sector.b++;
+      }
+    }
+  });
+
+  let html = '<div class="sectorgrid">';
+  html += `
+    <div class="sc" style="border-color:#0c1a3d;">
+      <h3>Keseluruhan</h3>
+      <div class="codes">semua sektor</div>
+      <div class="row tot"><span>Jumlah Kes</span><b>${totals.tot.toLocaleString()}</b></div>
+      <div class="row"><span>Kod 11</span><b>${totals.a1.toLocaleString()}</b></div>
+      <div class="row"><span>LK</span><b>${totals.lk.toLocaleString()}</b></div>
+      <div class="row"><span>Kod B</span><b>${totals.b.toLocaleString()}</b></div>
+    </div>`;
+  bySector.forEach(s => {
+    html += `
+    <div class="sc">
+      <h3>${s.name}</h3>
+      <div class="codes">${s.codes.join(', ')}</div>
+      <div class="row tot"><span>Jumlah Kes</span><b>${s.tot.toLocaleString()}</b></div>
+      <div class="row"><span>Kod 11</span><b>${s.a1.toLocaleString()}</b></div>
+      <div class="row"><span>LK</span><b>${s.lk.toLocaleString()}</b></div>
+      <div class="row"><span>Kod B</span><b>${s.b.toLocaleString()}</b></div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('sector-area').innerHTML = html;
+}
+
+function renderResults(query){
+  query = query.trim().toLowerCase();
+  let rows = RAW;
+  if(query){
+    rows = RAW.filter(r => {
+      const ns = RESOLVED.noSiri !== -1 ? (r[RESOLVED.noSiri]||'').toLowerCase() : '';
+      const nm = RESOLVED.nama !== -1 ? (r[RESOLVED.nama]||'').toLowerCase() : '';
+      return ns.includes(query) || nm.includes(query);
+    });
+  } else {
+    rows = [];
+  }
+
+  document.getElementById('result-count').textContent = query ? (rows.length.toLocaleString() + ' rekod dijumpai') : '';
+
+  if(!query){
+    document.getElementById('result-area').innerHTML = '<div class="empty">Taip di atas untuk mula carian.</div>';
+    return;
+  }
+  if(rows.length === 0){
+    document.getElementById('result-area').innerHTML = '<div class="empty">Tiada rekod sepadan.</div>';
+    return;
+  }
+
+  const shown = rows.slice(0, 500);
+  let body = shown.map(r => `
+    <tr>
+      <td>${RESOLVED.noSiri!==-1 ? (r[RESOLVED.noSiri]||'—') : '—'}</td>
+      <td>${RESOLVED.nama!==-1 ? (r[RESOLVED.nama]||'—') : '—'}</td>
+      <td>${RESOLVED.fe!==-1 ? (r[RESOLVED.fe]||'—') : '—'}</td>
+      <td>${RESOLVED.rekod!==-1 ? (r[RESOLVED.rekod]||'—') : '—'}</td>
+      <td>${RESOLVED.respon!==-1 ? codeBadge(r[RESOLVED.respon]) : '—'}</td>
+    </tr>`).join('');
+
+  document.getElementById('result-area').innerHTML = `
+    <div class="tablewrap">
+    <table>
+      <thead><tr><th>No Siri</th><th>Nama Pertubuhan</th><th>Kes Siapa (FE)</th><th>Status Rekod</th><th>Status Respon</th></tr></thead>
+      <tbody>${body}</tbody>
+    </table>
+    </div>
+    ${rows.length > 500 ? `<p class="hint" style="margin-top:8px;">Papar 500 drpd ${rows.length.toLocaleString()} rekod — perhalusi carian untuk lihat lebih spesifik.</p>` : ''}`;
+}
+
+document.getElementById('search-box').addEventListener('input', (e) => renderResults(e.target.value));
+loadData();
+</script>
+</body>
+</html>
