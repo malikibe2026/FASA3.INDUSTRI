@@ -69,7 +69,8 @@
   .c1{border-color:#3b82f6;} .c2{border-color:#16a34a;} .c3{border-color:#f59e0b;} .c4{border-color:#06b6d4;}
 
   table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;font-size:12.5px;}
-  thead th{background:var(--navy);color:#cfe0ff;text-align:left;padding:10px 10px;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;white-space:normal;max-width:120px;line-height:1.35;vertical-align:bottom;}
+  thead th{background:var(--navy);color:#cfe0ff;text-align:center;padding:10px 10px;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;white-space:normal;max-width:120px;line-height:1.35;vertical-align:bottom;}
+  thead th:nth-child(2){text-align:left;}
   tbody td{padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap;}
   tbody tr:hover{background:#f8fafc;}
   .rank-num{width:22px;height:22px;border-radius:50%;background:#e2e8f0;color:#334155;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
@@ -79,6 +80,7 @@
   .fill-green{background:#16a34a;} .fill-amber{background:#f59e0b;} .fill-orange{background:#ea580c;} .fill-red{background:#dc2626;}
   .pct{font-weight:700;} .pct-ok{color:#16a34a;} .pct-mid{color:#f59e0b;} .pct-low{color:#dc2626;}
   .baki0{color:#16a34a;font-weight:700;}
+  .baki-warn{background:#fbe4e4;color:#9f2b2b;font-weight:700;padding:3px 9px;border-radius:6px;display:inline-block;}
   .tablewrap{overflow-x:auto;border-radius:12px;box-shadow:0 1px 2px rgba(15,23,42,.06);}
   .empty{padding:40px;text-align:center;color:var(--sub);}
   .loading{padding:60px;text-align:center;color:var(--sub);font-size:13px;}
@@ -106,7 +108,6 @@
   </div>
 </div>
 <div class="toolrow">
-  <a href="#" id="link-borang" target="_blank">🏷️ Borang &amp; F2 Tracker</a>
   <a href="#" id="link-sheet" target="_blank">🔗 <span id="sheet-label">docs.google.com</span></a>
   <a href="carian_be2026.html">🔎 Carian No Siri / Nama</a>
   <a href="#" id="btn-muat">🔄 Muat Semula</a>
@@ -346,7 +347,7 @@ function computeStats(rows){
     const bakiKes = Math.max(0, st.tot - st.siap);
     return {...st, pctCapai, pctLK, bakiKes};
   });
-  list.sort((a,b) => b.siap - a.siap);
+  list.sort((a,b) => b.pctCapai - a.pctCapai);
   return { list, rekodValues };
 }
 
@@ -422,7 +423,7 @@ function render(){
         <td><div class="siap-bar"><div class="fill ${fillClass(f.pctCapai)}" style="width:${Math.max(barPct,18)}%">${f.siap.toLocaleString()}</div></div></td>
         <td><span class="pct ${pctClass(f.pctCapai)}">${fmtPct(f.pctCapai)}</span></td>
         ${rekodTds}
-        <td>${f.bakiKes===0 ? '<span class="baki0">0</span>' : f.bakiKes.toLocaleString()}</td>
+        <td>${f.bakiKes===0 ? '<span class="baki0">0</span>' : `<span class="baki-warn">${f.bakiKes.toLocaleString()}</span>`}</td>
       </tr>`;
   });
 
@@ -443,7 +444,7 @@ function render(){
   document.getElementById('content').innerHTML =
     '<div class="section-title">🏆 Kedudukan Teratas · Siap MKO</div>' + podiumHtml +
     cardsHtml +
-    '<div class="section-title">📋 Ranking Penuh — MKO Pegawai Lapangan (FE) (ikut Siap MKO terbanyak)</div>' +
+    '<div class="section-title">📋 Ranking Penuh — MKO Pegawai Lapangan (FE) (ikut % Capai tertinggi)</div>' +
     tableHtml;
 }
 
