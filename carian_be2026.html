@@ -4,71 +4,184 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Carian No Siri / Nama Pertubuhan — BE Fasa 3 : Seksyen Industri</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <style>
   :root{
-    --navy:#0c1a3d; --navy2:#13245c;
-    --ink:#0f172a; --sub:#64748b; --line:#e6e9f0; --bg:#eef1f7;
-    --green:#16a34a; --amber:#f59e0b; --red:#e11d48;
+    --navy:#0a1330; --navy2:#101c45; --navy3:#16224f;
+    --accent:#3b82f6; --accent2:#06b6d4;
+    --ink:#0f172a; --sub:#64748b; --sub2:#94a3b8; --line:#e8ebf2; --bg:#f2f4f9;
+    --green:#16a34a; --green-bg:#e9f9ef;
+    --amber:#d97706; --amber-bg:#fef3e0;
+    --red:#dc2626; --red-bg:#fdeaea;
+    --card:#ffffff;
+    --shadow-sm:0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04);
+    --shadow-md:0 4px 16px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.05);
+    --shadow-lg:0 12px 32px rgba(15,23,42,.12), 0 4px 12px rgba(15,23,42,.06);
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);}
-  .topbar{background:var(--navy);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
-  .topbar .brand{font-weight:800;font-size:16px;margin-right:auto;}
-  .topbar a{color:#cfe0ff;text-decoration:none;background:#1a2a5c;padding:7px 12px;border-radius:6px;font-size:12px;}
-  .accentbar{height:4px;background:linear-gradient(90deg,#1d4ed8,#06b6d4);}
-  .wrap{max-width:1200px;margin:0 auto;padding:20px 20px 60px;}
-  .section-title{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;margin:26px 0 14px;padding-left:10px;border-left:4px solid #1d4ed8;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;}
 
-  .sectorgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
-  .sc{background:#fff;border-radius:12px;padding:16px 16px;border-left:4px solid #1d4ed8;box-shadow:0 1px 2px rgba(15,23,42,.05);}
-  .sc h3{margin:0 0 2px;font-size:12.5px;font-weight:800;}
-  .sc .codes{font-size:10.5px;color:var(--sub);margin-bottom:10px;font-family:'DM Mono',monospace;}
-  .sc .row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-top:1px dashed var(--line);}
-  .sc .row b{font-size:13px;}
-  .sc .row.tot{border-top:none;font-weight:800;font-size:13px;}
+  /* ---------- HERO / TOPBAR ---------- */
+  .hero{
+    position:relative;
+    background:
+      radial-gradient(1100px 420px at 12% -10%, rgba(59,130,246,.35), transparent 60%),
+      radial-gradient(900px 380px at 95% -20%, rgba(6,182,212,.30), transparent 55%),
+      linear-gradient(160deg, var(--navy) 0%, var(--navy2) 55%, var(--navy3) 100%);
+    color:#fff;
+    padding:22px 28px 30px;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:'';position:absolute;inset:0;
+    background-image:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
+    background-size:22px 22px;
+    opacity:.5;pointer-events:none;
+  }
+  .hero-top{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;position:relative;z-index:1;}
+  .brandblock{display:flex;align-items:center;gap:14px;}
+  .brand-icon{
+    width:46px;height:46px;border-radius:13px;
+    background:linear-gradient(135deg,#3b82f6,#06b6d4);
+    display:flex;align-items:center;justify-content:center;font-size:22px;
+    box-shadow:0 6px 18px rgba(59,130,246,.45);
+  }
+  .brand-text h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.01em;}
+  .brand-text p{margin:2px 0 0;font-size:12px;color:#a9bde8;font-weight:500;}
+  .back-link{
+    display:inline-flex;align-items:center;gap:7px;
+    color:#dbe6ff;text-decoration:none;font-size:12.5px;font-weight:600;
+    background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);
+    padding:9px 16px;border-radius:10px;backdrop-filter:blur(6px);
+    transition:background .15s, transform .15s;
+  }
+  .back-link:hover{background:rgba(255,255,255,.16);transform:translateY(-1px);}
 
-  .searchbar{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
-  .searchbar input{flex:1;min-width:260px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;background:#fff;}
-  .searchbar .count{font-size:12px;color:var(--sub);white-space:nowrap;}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 24px 60px;}
+  .hero-inner{max-width:1280px;margin:0 auto;}
 
-  .tablewrap{overflow-x:auto;border-radius:12px;box-shadow:0 1px 2px rgba(15,23,42,.06);}
-  table{width:100%;border-collapse:collapse;background:#fff;font-size:12.5px;}
-  thead th{background:var(--navy);color:#cfe0ff;text-align:left;padding:10px 10px;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase;white-space:normal;line-height:1.35;}
-  tbody td{padding:9px 10px;border-bottom:1px solid var(--line);}
-  tbody tr:hover{background:#f8fafc;}
-  .badge-code{display:inline-block;padding:2px 7px;border-radius:6px;font-size:11px;font-weight:700;}
-  .bc-a1{background:#dcfce7;color:#15803d;}
-  .bc-lk{background:#fef3c7;color:#a16207;}
-  .bc-b{background:#fee2e2;color:#b91c1c;}
-  .bc-other{background:#e2e8f0;color:#475569;}
-  .loading{padding:60px;text-align:center;color:var(--sub);font-size:13px;}
-  .spin{width:26px;height:26px;border:3px solid #dbe3f5;border-top-color:#1d4ed8;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;}
+  .section-title{
+    display:flex;align-items:center;gap:10px;font-weight:800;font-size:14.5px;
+    margin:36px 0 16px;color:var(--ink);letter-spacing:.01em;
+  }
+  .section-title .dot{width:9px;height:9px;border-radius:3px;background:linear-gradient(135deg,var(--accent),var(--accent2));}
+  .section-sub{font-size:12px;color:var(--sub);margin:-10px 0 18px;}
+
+  /* ---------- SECTOR CARDS ---------- */
+  .sectorgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
+  @media (max-width:1100px){.sectorgrid{grid-template-columns:repeat(3,1fr);}}
+  @media (max-width:680px){.sectorgrid{grid-template-columns:repeat(2,1fr);}}
+
+  .sc{
+    background:var(--card);border-radius:16px;padding:20px 18px;
+    box-shadow:var(--shadow-sm);border:1px solid var(--line);
+    position:relative;overflow:hidden;transition:box-shadow .2s, transform .2s;
+  }
+  .sc:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+  .sc::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:var(--sc-color,linear-gradient(90deg,#1d4ed8,#06b6d4));}
+  .sc.total::before{background:linear-gradient(90deg,#0a1330,#334876);}
+  .sc.s0::before{background:linear-gradient(90deg,#f59e0b,#d97706);}
+  .sc.s1::before{background:linear-gradient(90deg,#10b981,#059669);}
+  .sc.s2::before{background:linear-gradient(90deg,#84cc16,#4d7c0f);}
+  .sc.s3::before{background:linear-gradient(90deg,#a855f7,#7e22ce);}
+
+  .sc h3{margin:2px 0 3px;font-size:13px;font-weight:800;letter-spacing:.01em;}
+  .sc .codes{font-size:10px;color:var(--sub2);margin-bottom:14px;font-family:'DM Mono',monospace;letter-spacing:.02em;}
+  .sc .metric-big{font-size:28px;font-weight:800;line-height:1;margin-bottom:12px;font-variant-numeric:tabular-nums;}
+  .sc .metric-big .lbl{display:block;font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+  .sc .subrow{display:flex;justify-content:space-between;align-items:center;font-size:11.5px;padding:6px 0;border-top:1px solid var(--line);}
+  .sc .subrow:first-of-type{border-top:1px solid var(--line);margin-top:2px;}
+  .sc .subrow span{color:var(--sub);}
+  .sc .subrow b{font-variant-numeric:tabular-nums;font-size:12.5px;}
+  .pill-a1{color:var(--green);} .pill-lk{color:var(--amber);} .pill-b{color:var(--red);}
+
+  .loading{padding:70px 20px;text-align:center;color:var(--sub);font-size:13px;}
+  .spin{width:28px;height:28px;border:3px solid #dbe3f5;border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px;}
   @keyframes spin{to{transform:rotate(360deg);}}
-  .empty{padding:40px;text-align:center;color:var(--sub);}
-  .errbox{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;padding:14px 18px;border-radius:10px;font-size:13px;}
-  .hint{font-size:11.5px;color:var(--sub);margin:-6px 0 16px;}
+
+  /* ---------- SEARCH ---------- */
+  .searchcard{
+    background:var(--card);border-radius:16px;padding:18px 20px;
+    box-shadow:var(--shadow-sm);border:1px solid var(--line);margin-bottom:18px;
+  }
+  .searchbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+  .search-input-wrap{flex:1;min-width:280px;position:relative;}
+  .search-input-wrap svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:.4;}
+  .searchbar input{
+    width:100%;padding:13px 14px 13px 42px;border:1.5px solid var(--line);border-radius:11px;
+    font-size:14.5px;font-family:inherit;background:#fafbfe;transition:border-color .15s, background .15s;
+  }
+  .searchbar input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 4px rgba(59,130,246,.10);}
+  .searchbar .count{font-size:12px;color:var(--sub);white-space:nowrap;font-weight:600;background:#f1f5f9;padding:8px 14px;border-radius:9px;}
+
+  /* ---------- TABLE ---------- */
+  .tablewrap{
+    border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--line);background:var(--card);
+  }
+  .tablescroll{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:12.8px;}
+  thead th{
+    background:var(--navy);color:#c9d9fb;text-align:left;padding:13px 14px;
+    font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;white-space:nowrap;
+  }
+  tbody td{padding:12px 14px;border-bottom:1px solid var(--line);color:var(--ink);}
+  tbody tr{transition:background .1s;}
+  tbody tr:nth-child(even){background:#fafbfe;}
+  tbody tr:hover{background:#eef4ff;}
+  tbody tr:last-child td{border-bottom:none;}
+  .fe-name{font-weight:700;}
+  .no-siri{font-family:'DM Mono',monospace;color:var(--sub);font-size:12px;}
+
+  .badge-code{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.01em;}
+  .bc-a1{background:var(--green-bg);color:var(--green);}
+  .bc-lk{background:var(--amber-bg);color:var(--amber);}
+  .bc-b{background:var(--red-bg);color:var(--red);}
+  .bc-other{background:#eef2f7;color:#64748b;}
+
+  .empty{padding:56px 20px;text-align:center;color:var(--sub);}
+  .empty .ico{font-size:34px;margin-bottom:10px;opacity:.5;}
+  .empty p{margin:0;font-size:13.5px;}
+  .errbox{background:var(--red-bg);color:#991b1b;border:1px solid #f6c2c2;padding:16px 20px;border-radius:12px;font-size:13px;}
+  .hint{font-size:11.5px;color:var(--sub);margin-top:10px;text-align:center;}
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="brand">🔎 CARIAN NO SIRI / NAMA PERTUBUHAN — BE FASA 3 : SEKSYEN INDUSTRI</div>
-  <a href="index.html">← Kembali ke Laporan Ranking</a>
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-top">
+      <div class="brandblock">
+        <div class="brand-icon">🔎</div>
+        <div class="brand-text">
+          <h1>Carian No Siri / Nama Pertubuhan</h1>
+          <p>BE Fasa 3 : Seksyen Industri · DOSM WPKL</p>
+        </div>
+      </div>
+      <a class="back-link" href="index.html">← Kembali ke Laporan Ranking</a>
+    </div>
+  </div>
 </div>
-<div class="accentbar"></div>
 
 <div class="wrap">
-  <div class="section-title">📊 Analisis Sektor</div>
+  <div class="section-title"><span class="dot"></span>Analisis Sektor</div>
+  <p class="section-sub">Pecahan jumlah kes dan status keyin (Kod 11 / LK / Kod B) ikut kumpulan sektor industri.</p>
   <div id="sector-area"><div class="loading"><div class="spin"></div>Memuatkan data...</div></div>
 
-  <div class="section-title">🔎 Carian Rekod</div>
-  <p class="hint">Taip No Siri atau Nama Pertubuhan (carian sebahagian, tak case-sensitive).</p>
-  <div class="searchbar">
-    <input type="text" id="search-box" placeholder="Cth: 443223 atau LINDDALE...">
-    <span class="count" id="result-count"></span>
+  <div class="section-title"><span class="dot"></span>Carian Rekod</div>
+  <p class="section-sub">Taip No Siri atau Nama Pertubuhan — carian sebahagian, tak case-sensitive.</p>
+
+  <div class="searchcard">
+    <div class="searchbar">
+      <div class="search-input-wrap">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-box" placeholder="Cth: 443223 atau LINDDALE...">
+      </div>
+      <span class="count" id="result-count"></span>
+    </div>
   </div>
+
   <div id="result-area"></div>
 </div>
 
@@ -89,10 +202,10 @@ const CODES_LK = ['12','13','14','21','22','23','31','40'];
 const CODES_B  = ['71','72','73','74','75','76','77'];
 
 const SECTORS = [
-  { name:'Pembinaan', codes:['206'] },
-  { name:'Pembuatan', codes:['205'] },
-  { name:'Pertanian', codes:['101','103','104','105'] },
-  { name:'Perlombongan & Perkuarian', codes:['200','207'] }
+  { name:'Pembinaan', codes:['206'], cls:'s0' },
+  { name:'Pembuatan', codes:['205'], cls:'s1' },
+  { name:'Pertanian', codes:['101','103','104','105'], cls:'s2' },
+  { name:'Perlombongan & Perkuarian', codes:['200','207'], cls:'s3' }
 ];
 
 let RAW = [], HEADERS = [], RESOLVED = {};
@@ -170,23 +283,23 @@ function renderSectors(){
 
   let html = '<div class="sectorgrid">';
   html += `
-    <div class="sc" style="border-color:#0c1a3d;">
+    <div class="sc total">
       <h3>Keseluruhan</h3>
       <div class="codes">semua sektor</div>
-      <div class="row tot"><span>Jumlah Kes</span><b>${totals.tot.toLocaleString()}</b></div>
-      <div class="row"><span>Kod 11</span><b>${totals.a1.toLocaleString()}</b></div>
-      <div class="row"><span>LK</span><b>${totals.lk.toLocaleString()}</b></div>
-      <div class="row"><span>Kod B</span><b>${totals.b.toLocaleString()}</b></div>
+      <div class="metric-big"><span class="lbl">Jumlah Kes</span>${totals.tot.toLocaleString()}</div>
+      <div class="subrow"><span>Kod 11</span><b class="pill-a1">${totals.a1.toLocaleString()}</b></div>
+      <div class="subrow"><span>LK</span><b class="pill-lk">${totals.lk.toLocaleString()}</b></div>
+      <div class="subrow"><span>Kod B</span><b class="pill-b">${totals.b.toLocaleString()}</b></div>
     </div>`;
   bySector.forEach(s => {
     html += `
-    <div class="sc">
+    <div class="sc ${s.cls}">
       <h3>${s.name}</h3>
       <div class="codes">${s.codes.join(', ')}</div>
-      <div class="row tot"><span>Jumlah Kes</span><b>${s.tot.toLocaleString()}</b></div>
-      <div class="row"><span>Kod 11</span><b>${s.a1.toLocaleString()}</b></div>
-      <div class="row"><span>LK</span><b>${s.lk.toLocaleString()}</b></div>
-      <div class="row"><span>Kod B</span><b>${s.b.toLocaleString()}</b></div>
+      <div class="metric-big"><span class="lbl">Jumlah Kes</span>${s.tot.toLocaleString()}</div>
+      <div class="subrow"><span>Kod 11</span><b class="pill-a1">${s.a1.toLocaleString()}</b></div>
+      <div class="subrow"><span>LK</span><b class="pill-lk">${s.lk.toLocaleString()}</b></div>
+      <div class="subrow"><span>Kod B</span><b class="pill-b">${s.b.toLocaleString()}</b></div>
     </div>`;
   });
   html += '</div>';
@@ -209,32 +322,34 @@ function renderResults(query){
   document.getElementById('result-count').textContent = query ? (rows.length.toLocaleString() + ' rekod dijumpai') : '';
 
   if(!query){
-    document.getElementById('result-area').innerHTML = '<div class="empty">Taip di atas untuk mula carian.</div>';
+    document.getElementById('result-area').innerHTML = '<div class="tablewrap"><div class="empty"><div class="ico">🔍</div><p>Taip di atas untuk mula carian.</p></div></div>';
     return;
   }
   if(rows.length === 0){
-    document.getElementById('result-area').innerHTML = '<div class="empty">Tiada rekod sepadan.</div>';
+    document.getElementById('result-area').innerHTML = '<div class="tablewrap"><div class="empty"><div class="ico">🗂️</div><p>Tiada rekod sepadan.</p></div></div>';
     return;
   }
 
   const shown = rows.slice(0, 500);
   let body = shown.map(r => `
     <tr>
-      <td>${RESOLVED.noSiri!==-1 ? (r[RESOLVED.noSiri]||'—') : '—'}</td>
+      <td class="no-siri">${RESOLVED.noSiri!==-1 ? (r[RESOLVED.noSiri]||'—') : '—'}</td>
       <td>${RESOLVED.nama!==-1 ? (r[RESOLVED.nama]||'—') : '—'}</td>
-      <td>${RESOLVED.fe!==-1 ? (r[RESOLVED.fe]||'—') : '—'}</td>
+      <td class="fe-name">${RESOLVED.fe!==-1 ? (r[RESOLVED.fe]||'—') : '—'}</td>
       <td>${RESOLVED.rekod!==-1 ? (r[RESOLVED.rekod]||'—') : '—'}</td>
       <td>${RESOLVED.respon!==-1 ? codeBadge(r[RESOLVED.respon]) : '—'}</td>
     </tr>`).join('');
 
   document.getElementById('result-area').innerHTML = `
     <div class="tablewrap">
+    <div class="tablescroll">
     <table>
       <thead><tr><th>No Siri</th><th>Nama Pertubuhan</th><th>Kes Siapa (FE)</th><th>Status Rekod</th><th>Status Respon</th></tr></thead>
       <tbody>${body}</tbody>
     </table>
     </div>
-    ${rows.length > 500 ? `<p class="hint" style="margin-top:8px;">Papar 500 drpd ${rows.length.toLocaleString()} rekod — perhalusi carian untuk lihat lebih spesifik.</p>` : ''}`;
+    </div>
+    ${rows.length > 500 ? `<p class="hint">Papar 500 drpd ${rows.length.toLocaleString()} rekod — perhalusi carian untuk lihat lebih spesifik.</p>` : ''}`;
 }
 
 document.getElementById('search-box').addEventListener('input', (e) => renderResults(e.target.value));
