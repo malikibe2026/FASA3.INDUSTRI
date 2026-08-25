@@ -59,6 +59,23 @@
   }
   .back-link:hover{background:rgba(255,255,255,.16);transform:translateY(-1px);}
 
+  .hero-filters{display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-top:20px;position:relative;z-index:1;}
+  .fgroup{display:flex;flex-direction:column;gap:4px;}
+  .fgroup label{font-size:10.5px;letter-spacing:.06em;color:#9fb0d8;text-transform:uppercase;font-weight:700;}
+  .fgroup select{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px;font-size:13.5px;font-family:inherit;min-width:130px;}
+  .fgroup select option{color:#0f172a;}
+
+  .multiselect{position:relative;}
+  .ms-btn{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:8px 10px;font-size:13.5px;font-family:inherit;min-width:150px;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .ms-btn:after{content:'▾';font-size:10px;opacity:.8;}
+  .ms-panel{display:none;position:absolute;top:calc(100% + 6px);left:0;background:#0f1c46;border:1px solid #2a3a72;border-radius:10px;padding:9px;min-width:210px;max-height:260px;overflow-y:auto;z-index:60;box-shadow:0 10px 26px rgba(0,0,0,.4);}
+  .ms-panel.open{display:block;}
+  .ms-panel label{display:flex;align-items:center;gap:8px;color:#e2e8f0;font-size:13.5px;padding:5px 5px;border-radius:5px;cursor:pointer;white-space:nowrap;}
+  .ms-panel label:hover{background:#1a2a5c;}
+  .ms-panel input[type=checkbox]{accent-color:#3b82f6;width:15px;height:15px;}
+  .ms-actions{display:flex;gap:10px;padding:4px 5px 8px;border-bottom:1px solid #2a3a72;margin-bottom:5px;}
+  .ms-actions a{font-size:11.5px;color:#8fb3ff;cursor:pointer;text-decoration:underline;}
+
   .wrap{max-width:1280px;margin:0 auto;padding:0 24px 60px;}
   .hero-inner{max-width:1280px;margin:0 auto;}
 
@@ -89,12 +106,16 @@
 
   .sc h3{margin:2px 0 3px;font-size:14.5px;font-weight:800;letter-spacing:.01em;}
   .sc .codes{font-size:11.5px;color:var(--sub2);margin-bottom:14px;font-family:'DM Mono',monospace;letter-spacing:.02em;}
-  .sc .metric-big{font-size:30px;font-weight:800;line-height:1;margin-bottom:12px;font-variant-numeric:tabular-nums;}
+  .sc .metric-big{font-size:30px;font-weight:800;line-height:1;margin-bottom:4px;font-variant-numeric:tabular-nums;}
   .sc .metric-big .lbl{display:block;font-size:11.5px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;}
+  .sc .capai-pct{font-size:12px;color:var(--sub);margin-bottom:12px;font-weight:600;}
+  .sc .capai-pct b{color:var(--accent);}
   .sc .subrow{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:7px 0;border-top:1px solid var(--line);}
   .sc .subrow:first-of-type{border-top:1px solid var(--line);margin-top:2px;}
   .sc .subrow span{color:var(--sub);}
+  .sc .subrow .vals{display:flex;align-items:baseline;gap:6px;}
   .sc .subrow b{font-variant-numeric:tabular-nums;font-size:14px;}
+  .sc .subrow .pct{font-size:11px;color:var(--sub2);font-weight:600;}
   .pill-a1{color:var(--green);} .pill-lk{color:var(--amber);} .pill-b{color:var(--red);}
 
   .loading{padding:70px 20px;text-align:center;color:var(--sub);font-size:14.5px;}
@@ -115,6 +136,7 @@
   }
   .searchbar input:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 4px rgba(59,130,246,.10);}
   .searchbar .count{font-size:13.5px;color:var(--sub);white-space:nowrap;font-weight:600;background:#f1f5f9;padding:8px 14px;border-radius:9px;}
+  .hint-top{font-size:11.5px;color:var(--sub2);margin-top:6px;}
 
   /* ---------- TABLE ---------- */
   .tablewrap{
@@ -127,18 +149,38 @@
     font-size:12px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;white-space:nowrap;
   }
   tbody td{padding:12px 14px;border-bottom:1px solid var(--line);color:var(--ink);}
-  tbody tr{transition:background .1s;}
-  tbody tr:nth-child(even){background:#fafbfe;}
-  tbody tr:hover{background:#eef4ff;}
+  tbody tr.rowmain{transition:background .1s;cursor:pointer;}
+  tbody tr.rowmain:nth-child(4n+1){background:#fafbfe;}
+  tbody tr.rowmain:hover{background:#eef4ff;}
+  tbody tr.rowmain.open{background:#e3edff;}
   tbody tr:last-child td{border-bottom:none;}
   .fe-name{font-weight:700;}
   .no-siri{font-family:'DM Mono',monospace;color:var(--sub);font-size:13.5px;}
+  .chev{display:inline-block;transition:transform .15s;opacity:.5;margin-right:4px;}
+  .rowmain.open .chev{transform:rotate(90deg);}
 
   .badge-code{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:12.5px;font-weight:700;letter-spacing:.01em;}
   .bc-a1{background:var(--green-bg);color:var(--green);}
   .bc-lk{background:var(--amber-bg);color:var(--amber);}
   .bc-b{background:var(--red-bg);color:var(--red);}
   .bc-other{background:#eef2f7;color:#64748b;}
+
+  .detailrow td{background:#f7f9fd;padding:0;border-bottom:1px solid var(--line);}
+  .detailbox{padding:20px 22px;}
+  .detailgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
+  @media (max-width:900px){.detailgrid{grid-template-columns:repeat(2,1fr);}}
+  .dfield{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 13px;}
+  .dfield .dl{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub);font-weight:700;margin-bottom:4px;}
+  .dfield .dv{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;}
+  .dfield .dv.missing{color:var(--sub2);font-weight:500;font-size:13px;}
+  .ssmbox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .ssmbox .sslbl{font-size:12px;color:var(--sub);font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+  .ssmcompare{display:flex;gap:22px;flex-wrap:wrap;}
+  .ssmcompare .sitem{text-align:center;}
+  .ssmcompare .sitem .sv{font-size:17px;font-weight:800;}
+  .ssmcompare .sitem .sk{font-size:10.5px;color:var(--sub);text-transform:uppercase;}
+  .diff-up{color:var(--green);} .diff-down{color:var(--red);}
+  .col-note{font-size:11px;color:var(--sub2);margin-top:10px;}
 
   .empty{padding:56px 20px;text-align:center;color:var(--sub);}
   .empty .ico{font-size:36px;margin-bottom:10px;opacity:.5;}
@@ -161,16 +203,22 @@
       </div>
       <a class="back-link" href="index.html">← Kembali ke Laporan Ranking</a>
     </div>
+    <div class="hero-filters">
+      <div class="fgroup"><label>Tier</label>
+        <div class="multiselect" id="ms-tier"><button type="button" class="ms-btn"><span class="ms-label">Semua</span></button><div class="ms-panel"></div></div>
+      </div>
+      <div class="fgroup"><label>Tetap/PMS</label><select id="f-tetappms"><option value="">Semua</option></select></div>
+    </div>
   </div>
 </div>
 
 <div class="wrap">
   <div class="section-title"><span class="dot"></span>Analisis Sektor</div>
-  <p class="section-sub">Pecahan jumlah kes dan status keyin (Kod 11 / LK / Kod B) ikut kumpulan sektor industri.</p>
+  <p class="section-sub">Pecahan jumlah kes dan status keyin (Kod 11 / LK / Kod B) ikut kumpulan sektor industri, dengan peratusan drpd jumlah kes sektor.</p>
   <div id="sector-area"><div class="loading"><div class="spin"></div>Memuatkan data...</div></div>
 
   <div class="section-title"><span class="dot"></span>Carian Rekod</div>
-  <p class="section-sub">Taip No Siri atau Nama Pertubuhan — carian sebahagian, tak case-sensitive.</p>
+  <p class="section-sub">Taip No Siri atau Nama Pertubuhan — carian sebahagian, tak case-sensitive. Klik mana-mana baris untuk lihat butiran penuh.</p>
 
   <div class="searchcard">
     <div class="searchbar">
@@ -189,12 +237,21 @@
 const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ1pyb-W0moykeEARFf2rGM5A3ggu1Fj4KtLDB47gRpyn6DYp2kDcbbmUbzuqDX2sEIoKsFBVrASIaZ/pub?gid=518237575&single=true&output=csv";
 
 const COLMAP = {
-  noSiri:    ['NO SIRI','NO_SIRI','No Siri'],
-  nama:      ['REGISTERED_NAME','TRADING_NAME','NAMA_PERTUBUHAN','Nama Pertubuhan'],
-  fe:        ['FINAL FE BE','FE','Pegawai Kerja Luar'],
-  respon:    ['Status Respon','Status_Respon','Kod Respons BE 2026 (Fasa 1) (Sehingga 2 Feb. 2026)'],
-  rekod:     ['Status Rekod','STATUS_REKOD','Status_Rekod','STATUS.1'],
-  survei:    ['KodSurvei_KET','SURVEI','MSIC DAN KET']
+  noSiri:      ['NO SIRI','NO_SIRI','No Siri'],
+  nama:        ['REGISTERED_NAME','TRADING_NAME','NAMA_PERTUBUHAN','Nama Pertubuhan'],
+  fe:          ['FINAL FE BE','FE','Pegawai Kerja Luar'],
+  respon:      ['Status Respon','Status_Respon','Kod Respons BE 2026 (Fasa 1) (Sehingga 2 Feb. 2026)'],
+  rekod:       ['Status Rekod','STATUS_REKOD','Status_Rekod','STATUS.1'],
+  survei:      ['KodSurvei_KET','SURVEI','MSIC DAN KET'],
+  tier:        ['TIER','Tier'],
+  tetappms:    ['TETAP/PMS','TETAP_PMS','STATUS_PEGAWAI','JENIS_PEGAWAI','Tetap/PMS'],
+  tahun:       ['TAHUN','TAHUN_DATA','YEAR','Tahun Data','TAHUN_RUJUKAN'],
+  pendapatan:  ['PENDAPATAN','JUMLAH_PENDAPATAN','REVENUE','Pendapatan','JUALAN'],
+  aset:        ['ASET','JUMLAH_ASET','Aset','TOTAL_ASSETS'],
+  bekerja:     ['BEKERJA','JUMLAH_PEKERJA','BILANGAN_PEKERJA','Bekerja','WORKERS','BILANGAN_BEKERJA'],
+  belanja:     ['BELANJA','JUMLAH_BELANJA','Belanja','EXPENSES'],
+  gaji:        ['GAJI','JUMLAH_GAJI','Gaji','SALARY','GAJI_UPAH'],
+  ssmRevenue:  ['SSM_REVENUE','REVENUE_SSM','PENDAPATAN_SSM','SSM Revenue','REVENUE (SSM)']
 };
 
 const CODES_A1 = ['11'];
@@ -209,6 +266,8 @@ const SECTORS = [
 ];
 
 let RAW = [], HEADERS = [], RESOLVED = {};
+let FILTERED = [];
+const selectedTier = new Set();
 
 function resolveCol(field){
   for(const c of COLMAP[field]){
@@ -234,6 +293,65 @@ function codeBadge(v){
   const cls = b==='a1'?'bc-a1':b==='lk'?'bc-lk':b==='b'?'bc-b':'bc-other';
   return `<span class="badge-code ${cls}">${v ? v : '—'}</span>`;
 }
+function parseNum(v){
+  if(!v) return null;
+  const cleaned = String(v).replace(/[^0-9.\-]/g,'');
+  if(cleaned === '' || cleaned === '-') return null;
+  const n = parseFloat(cleaned);
+  return isNaN(n) ? null : n;
+}
+function fmtMoney(n){
+  return 'RM ' + n.toLocaleString('ms-MY', {maximumFractionDigits:0});
+}
+function uniqueVals(colIdx){
+  if(colIdx === -1) return [];
+  const set = new Set();
+  RAW.forEach(r => { const v = (r[colIdx]||'').trim(); if(v) set.add(v); });
+  return Array.from(set).sort();
+}
+function fillSelect(id, vals){
+  const sel = document.getElementById(id);
+  sel.innerHTML = '<option value="">Semua</option>' + vals.map(v => `<option value="${v}">${v}</option>`).join('');
+}
+
+function buildMultiselect(msId, values, selectedSet){
+  const root = document.getElementById(msId);
+  const btn = root.querySelector('.ms-btn');
+  const lbl = root.querySelector('.ms-label');
+  const panel = root.querySelector('.ms-panel');
+
+  panel.innerHTML = `
+    <div class="ms-actions"><a data-act="all">Pilih Semua</a><a data-act="none">Kosongkan</a></div>
+    ${values.map(v => `<label><input type="checkbox" value="${v}" ${selectedSet.has(v)?'checked':''}> ${v}</label>`).join('')}`;
+
+  function updateLabel(){ lbl.textContent = selectedSet.size === 0 ? 'Semua' : (selectedSet.size + ' dipilih'); }
+  updateLabel();
+
+  panel.querySelectorAll('input[type=checkbox]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      if(cb.checked) selectedSet.add(cb.value); else selectedSet.delete(cb.value);
+      updateLabel(); applyFilters();
+    });
+  });
+  panel.querySelector('[data-act="all"]').addEventListener('click', () => {
+    values.forEach(v => selectedSet.add(v));
+    panel.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = true);
+    updateLabel(); applyFilters();
+  });
+  panel.querySelector('[data-act="none"]').addEventListener('click', () => {
+    selectedSet.clear();
+    panel.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+    updateLabel(); applyFilters();
+  });
+  btn.onclick = (e) => {
+    e.stopPropagation();
+    document.querySelectorAll('.ms-panel.open').forEach(p => { if(p !== panel) p.classList.remove('open'); });
+    panel.classList.toggle('open');
+  };
+}
+document.addEventListener('click', () => {
+  document.querySelectorAll('.ms-panel.open').forEach(p => p.classList.remove('open'));
+});
 
 function loadData(){
   Papa.parse(CSV_URL, {
@@ -243,12 +361,14 @@ function loadData(){
       if(!rows || rows.length < 2){ showError('Fail CSV kosong.'); return; }
       HEADERS = rows[0];
       RAW = rows.slice(1);
-      RESOLVED = {
-        noSiri: resolveCol('noSiri'), nama: resolveCol('nama'), fe: resolveCol('fe'),
-        respon: resolveCol('respon'), rekod: resolveCol('rekod'), survei: resolveCol('survei')
-      };
-      renderSectors();
-      renderResults('');
+      RESOLVED = {};
+      Object.keys(COLMAP).forEach(k => { RESOLVED[k] = resolveCol(k); });
+
+      buildMultiselect('ms-tier', uniqueVals(RESOLVED.tier), selectedTier);
+      fillSelect('f-tetappms', uniqueVals(RESOLVED.tetappms));
+      document.getElementById('f-tetappms').addEventListener('change', applyFilters);
+
+      applyFilters();
     },
     error:function(err){ showError('Gagal fetch CSV: '+err.message); }
   });
@@ -258,11 +378,22 @@ function showError(msg){
   document.getElementById('result-area').innerHTML = '';
 }
 
+function applyFilters(){
+  const fTetapPms = document.getElementById('f-tetappms').value;
+  FILTERED = RAW.filter(r => {
+    if(selectedTier.size > 0 && RESOLVED.tier !== -1 && !selectedTier.has((r[RESOLVED.tier]||'').trim())) return false;
+    if(fTetapPms && RESOLVED.tetappms !== -1 && (r[RESOLVED.tetappms]||'').trim() !== fTetapPms) return false;
+    return true;
+  });
+  renderSectors();
+  renderResults(document.getElementById('search-box').value);
+}
+
 function renderSectors(){
   const totals = { tot:0, a1:0, lk:0, b:0 };
   const bySector = SECTORS.map(s => ({ ...s, tot:0, a1:0, lk:0, b:0 }));
 
-  RAW.forEach(r => {
+  FILTERED.forEach(r => {
     totals.tot++;
     const bucket = RESOLVED.respon !== -1 ? bucketOf(r[RESOLVED.respon]) : 'other';
     if(bucket==='a1') totals.a1++;
@@ -281,42 +412,48 @@ function renderSectors(){
     }
   });
 
+  function pct(n, d){ return d ? (n/d*100).toFixed(0)+'%' : '0%'; }
+
   let html = '<div class="sectorgrid">';
+  const overallSiap = totals.a1+totals.lk+totals.b;
   html += `
     <div class="sc total">
       <h3>Keseluruhan</h3>
       <div class="codes">semua sektor</div>
       <div class="metric-big"><span class="lbl">Jumlah Kes</span>${totals.tot.toLocaleString()}</div>
-      <div class="subrow"><span>Kod 11</span><b class="pill-a1">${totals.a1.toLocaleString()}</b></div>
-      <div class="subrow"><span>LK</span><b class="pill-lk">${totals.lk.toLocaleString()}</b></div>
-      <div class="subrow"><span>Kod B</span><b class="pill-b">${totals.b.toLocaleString()}</b></div>
+      <div class="capai-pct">% Capai: <b>${pct(overallSiap, totals.tot)}</b></div>
+      <div class="subrow"><span>Kod 11</span><div class="vals"><b class="pill-a1">${totals.a1.toLocaleString()}</b><span class="pct">${pct(totals.a1,totals.tot)}</span></div></div>
+      <div class="subrow"><span>LK</span><div class="vals"><b class="pill-lk">${totals.lk.toLocaleString()}</b><span class="pct">${pct(totals.lk,totals.tot)}</span></div></div>
+      <div class="subrow"><span>Kod B</span><div class="vals"><b class="pill-b">${totals.b.toLocaleString()}</b><span class="pct">${pct(totals.b,totals.tot)}</span></div></div>
     </div>`;
   bySector.forEach(s => {
+    const siap = s.a1+s.lk+s.b;
     html += `
     <div class="sc ${s.cls}">
       <h3>${s.name}</h3>
       <div class="codes">${s.codes.join(', ')}</div>
       <div class="metric-big"><span class="lbl">Jumlah Kes</span>${s.tot.toLocaleString()}</div>
-      <div class="subrow"><span>Kod 11</span><b class="pill-a1">${s.a1.toLocaleString()}</b></div>
-      <div class="subrow"><span>LK</span><b class="pill-lk">${s.lk.toLocaleString()}</b></div>
-      <div class="subrow"><span>Kod B</span><b class="pill-b">${s.b.toLocaleString()}</b></div>
+      <div class="capai-pct">% Capai: <b>${pct(siap, s.tot)}</b></div>
+      <div class="subrow"><span>Kod 11</span><div class="vals"><b class="pill-a1">${s.a1.toLocaleString()}</b><span class="pct">${pct(s.a1,s.tot)}</span></div></div>
+      <div class="subrow"><span>LK</span><div class="vals"><b class="pill-lk">${s.lk.toLocaleString()}</b><span class="pct">${pct(s.lk,s.tot)}</span></div></div>
+      <div class="subrow"><span>Kod B</span><div class="vals"><b class="pill-b">${s.b.toLocaleString()}</b><span class="pct">${pct(s.b,s.tot)}</span></div></div>
     </div>`;
   });
   html += '</div>';
   document.getElementById('sector-area').innerHTML = html;
 }
 
+let CURRENT_SHOWN = [];
+
 function renderResults(query){
-  query = query.trim().toLowerCase();
-  let rows = RAW;
+  query = (query||'').trim().toLowerCase();
+  let rows = [];
   if(query){
-    rows = RAW.filter(r => {
+    rows = FILTERED.filter(r => {
       const ns = RESOLVED.noSiri !== -1 ? (r[RESOLVED.noSiri]||'').toLowerCase() : '';
       const nm = RESOLVED.nama !== -1 ? (r[RESOLVED.nama]||'').toLowerCase() : '';
       return ns.includes(query) || nm.includes(query);
     });
-  } else {
-    rows = [];
   }
 
   document.getElementById('result-count').textContent = query ? (rows.length.toLocaleString() + ' rekod dijumpai') : '';
@@ -330,15 +467,16 @@ function renderResults(query){
     return;
   }
 
-  const shown = rows.slice(0, 500);
-  let body = shown.map(r => `
-    <tr>
-      <td class="no-siri">${RESOLVED.noSiri!==-1 ? (r[RESOLVED.noSiri]||'—') : '—'}</td>
+  CURRENT_SHOWN = rows.slice(0, 500);
+  let body = CURRENT_SHOWN.map((r, i) => `
+    <tr class="rowmain" data-idx="${i}">
+      <td class="no-siri"><span class="chev">▶</span>${RESOLVED.noSiri!==-1 ? (r[RESOLVED.noSiri]||'—') : '—'}</td>
       <td>${RESOLVED.nama!==-1 ? (r[RESOLVED.nama]||'—') : '—'}</td>
       <td class="fe-name">${RESOLVED.fe!==-1 ? (r[RESOLVED.fe]||'—') : '—'}</td>
       <td>${RESOLVED.rekod!==-1 ? (r[RESOLVED.rekod]||'—') : '—'}</td>
       <td>${RESOLVED.respon!==-1 ? codeBadge(r[RESOLVED.respon]) : '—'}</td>
-    </tr>`).join('');
+    </tr>
+    <tr class="detailrow" id="detail-${i}" style="display:none;"><td colspan="5"></td></tr>`).join('');
 
   document.getElementById('result-area').innerHTML = `
     <div class="tablewrap">
@@ -350,6 +488,78 @@ function renderResults(query){
     </div>
     </div>
     ${rows.length > 500 ? `<p class="hint">Papar 500 drpd ${rows.length.toLocaleString()} rekod — perhalusi carian untuk lihat lebih spesifik.</p>` : ''}`;
+
+  document.querySelectorAll('tr.rowmain').forEach(tr => {
+    tr.addEventListener('click', () => toggleDetail(parseInt(tr.dataset.idx)));
+  });
+}
+
+function fieldBox(label, colKey, r, formatter){
+  const idx = RESOLVED[colKey];
+  if(idx === -1) return `<div class="dfield"><div class="dl">${label}</div><div class="dv missing">Lajur tidak ditemui</div></div>`;
+  const raw = r[idx];
+  const num = parseNum(raw);
+  const display = num !== null ? (formatter ? formatter(num) : num.toLocaleString()) : (raw && raw.trim() ? raw : '—');
+  const isMissing = !raw || !raw.trim();
+  return `<div class="dfield"><div class="dl">${label}</div><div class="dv ${isMissing?'missing':''}">${display}</div></div>`;
+}
+
+function toggleDetail(idx){
+  const tr = document.querySelector(`tr.rowmain[data-idx="${idx}"]`);
+  const detailTr = document.getElementById('detail-'+idx);
+  const isOpen = detailTr.style.display !== 'none';
+
+  document.querySelectorAll('.detailrow').forEach(d => d.style.display = 'none');
+  document.querySelectorAll('.rowmain').forEach(r => r.classList.remove('open'));
+
+  if(isOpen) return;
+
+  const r = CURRENT_SHOWN[idx];
+  tr.classList.add('open');
+
+  const pendapatanIdx = RESOLVED.pendapatan;
+  const ssmIdx = RESOLVED.ssmRevenue;
+  let compareHtml = '';
+  if(pendapatanIdx !== -1 && ssmIdx !== -1){
+    const p = parseNum(r[pendapatanIdx]);
+    const s = parseNum(r[ssmIdx]);
+    if(p !== null && s !== null){
+      const diff = p - s;
+      const diffPct = s !== 0 ? (diff/s*100) : 0;
+      const cls = diff >= 0 ? 'diff-up' : 'diff-down';
+      const sign = diff >= 0 ? '+' : '';
+      compareHtml = `
+        <div class="ssmbox">
+          <div class="sslbl">Banding Pendapatan vs SSM</div>
+          <div class="ssmcompare">
+            <div class="sitem"><div class="sv">${fmtMoney(p)}</div><div class="sk">Data Frame</div></div>
+            <div class="sitem"><div class="sv">${fmtMoney(s)}</div><div class="sk">SSM</div></div>
+            <div class="sitem"><div class="sv ${cls}">${sign}${fmtMoney(diff)} (${sign}${diffPct.toFixed(1)}%)</div><div class="sk">Beza</div></div>
+          </div>
+        </div>`;
+    } else {
+      compareHtml = `<div class="ssmbox"><div class="sslbl">Banding Pendapatan vs SSM</div><div class="col-note">Data pendapatan atau SSM tiada untuk rekod ini.</div></div>`;
+    }
+  } else {
+    compareHtml = `<div class="ssmbox"><div class="sslbl">Banding Pendapatan vs SSM</div><div class="col-note">Lajur pendapatan/SSM belum dikenalpasti dalam sheet — sila sahkan nama lajur sebenar.</div></div>`;
+  }
+
+  const detailHtml = `
+    <div class="detailbox">
+      <div class="detailgrid">
+        ${fieldBox('Kod Survei', 'survei', r)}
+        ${fieldBox('Tahun Data', 'tahun', r)}
+        ${fieldBox('Pendapatan', 'pendapatan', r, fmtMoney)}
+        ${fieldBox('Aset', 'aset', r, fmtMoney)}
+        ${fieldBox('Bilangan Bekerja', 'bekerja', r)}
+        ${fieldBox('Belanja', 'belanja', r, fmtMoney)}
+        ${fieldBox('Gaji & Upah', 'gaji', r, fmtMoney)}
+      </div>
+      ${compareHtml}
+    </div>`;
+
+  detailTr.querySelector('td').innerHTML = detailHtml;
+  detailTr.style.display = '';
 }
 
 document.getElementById('search-box').addEventListener('input', (e) => renderResults(e.target.value));
