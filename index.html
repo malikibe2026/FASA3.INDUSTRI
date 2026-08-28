@@ -61,7 +61,8 @@
   .m-gold{background:linear-gradient(160deg,#ffcf5c,#dc7f1e);}
   .m-bronze{background:linear-gradient(160deg,#d98a4a,#8a4a1e);}
 
-  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:6px;}
+  .cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:6px;}
+  @media (max-width:1000px){.cards{grid-template-columns:repeat(2,1fr);}}
   .card{background:#fff;border-radius:12px;padding:16px 18px;border-left:4px solid #ccc;box-shadow:0 1px 2px rgba(15,23,42,.04);}
   .card .lbl{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--sub);font-weight:700;letter-spacing:.03em;}
   .card .val{font-size:28px;font-weight:800;margin-top:4px;}
@@ -201,12 +202,55 @@ function loadData(){
       populateFilters();
       document.getElementById('update-time').textContent = new Date().toLocaleString('ms-MY');
       document.getElementById('status-line').textContent = RAW.length.toLocaleString() + ' rekod dimuatkan';
+      computeDeltaAndSnapshot();
       render();
     },
     error: function(err){
       showError('Gagal fetch CSV: ' + err.message + '. Semak sambungan internet / sharing sheet.');
     }
   });
+}
+
+const SNAPSHOT_KEY = 'be2026_laporan_snapshot_v1';
+let PREV_SNAPSHOT = null;
+let PREV_LABEL = '';
+try {
+  const raw = localStorage.getItem(SNAPSHOT_KEY);
+  if(raw) PREV_SNAPSHOT = JSON.parse(raw);
+} catch(e){ PREV_SNAPSHOT = null; }
+let GLOBAL_DELTA = { byFE:{}, overallSiap:null, overallTot:null };
+
+function computeDeltaAndSnapshot(){
+  const byFE = {};
+  let totalSiap = 0, totalTot = 0;
+  RAW.forEach(r => {
+    const fe = (r[RESOLVED.fe]||'').trim();
+    if(!fe) return;
+    totalTot++;
+    if(!byFE[fe]) byFE[fe] = 0;
+    const code = RESOLVED.respon !== -1 ? r[RESOLVED.respon] : '';
+    const bucket = bucketOf(code);
+    if(bucket === 'a1' || bucket === 'lk' || bucket === '50' || bucket === 'b'){
+      byFE[fe]++; totalSiap++;
+    }
+  });
+
+  if(PREV_SNAPSHOT){
+    GLOBAL_DELTA.overallSiap = totalSiap - PREV_SNAPSHOT.totalSiap;
+    GLOBAL_DELTA.overallTot = totalTot - PREV_SNAPSHOT.totalTot;
+    GLOBAL_DELTA.byFE = {};
+    Object.keys(byFE).forEach(fe => {
+      GLOBAL_DELTA.byFE[fe] = PREV_SNAPSHOT.byFE[fe] !== undefined ? (byFE[fe] - PREV_SNAPSHOT.byFE[fe]) : null;
+    });
+    PREV_LABEL = new Date(PREV_SNAPSHOT.timestamp).toLocaleString('ms-MY');
+  } else {
+    GLOBAL_DELTA = { byFE:{}, overallSiap:null, overallTot:null };
+    PREV_LABEL = '';
+  }
+
+  try {
+    localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ timestamp: Date.now(), byFE, totalSiap, totalTot }));
+  } catch(e){ /* storan penuh / tak disokong — abaikan senyap */ }
 }
 
 function showError(msg){
@@ -396,12 +440,20 @@ function render(){
   });
   podiumHtml += '</div>';
 
+  const deltaChip = (d) => {
+    if(d === null || d === undefined) return '<span style="color:#94a3b8;">—</span>';
+    if(d === 0) return '<span style="color:#94a3b8;">Tiada perubahan</span>';
+    const up = d > 0;
+    return `<span style="color:${up?'#16a34a':'#dc2626'};font-weight:700;">${up?'▲':'▼'} ${up?'+':''}${d.toLocaleString()}</span>`;
+  };
+
   const cardsHtml = `
     <div class="cards">
       <div class="card c1"><div class="lbl">JUMLAH AGIHAN <span>📦</span></div><div class="val">${totalTot.toLocaleString()}</div></div>
       <div class="card c2"><div class="lbl">SIAP MKO (A+B) <span>✅</span></div><div class="val">${totalSiap.toLocaleString()}</div><div class="note">${fmtPct(overallPct)} drpd jumlah agihan</div></div>
       <div class="card c3"><div class="lbl">BAKI KES <span>📋</span></div><div class="val">${totalBaki.toLocaleString()}</div></div>
       <div class="card c4"><div class="lbl">JUMLAH FE <span>👥</span></div><div class="val">${list.length}</div><div class="note">dalam skop tapisan</div></div>
+      <div class="card c2"><div class="lbl">PERUBAHAN SIAP MKO <span>📈</span></div><div class="val">${deltaChip(GLOBAL_DELTA.overallSiap)}</div><div class="note">${PREV_LABEL ? 'drpd kemaskini ' + PREV_LABEL : 'kemaskini pertama — tiada data lampau'}</div></div>
     </div>`;
 
   let rowsHtml = '';
@@ -410,6 +462,7 @@ function render(){
     const medal = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
     const barPct = Math.min(100, f.pctCapai);
     const rekodTds = rekodValues.map(rv => `<td>${(f.rekod[rv]||0).toLocaleString()}</td>`).join('');
+    const d = GLOBAL_DELTA.byFE[f.fe];
     rowsHtml += `
       <tr>
         <td>${medal ? `<span class="medal">${medal}</span>` : `<span class="rank-num">${rank}</span>`}</td>
@@ -421,6 +474,7 @@ function render(){
         <td>${f.k50.toLocaleString()}</td>
         <td>${f.b.toLocaleString()}</td>
         <td><div class="siap-bar"><div class="fill ${fillClass(f.pctCapai)}" style="width:${Math.max(barPct,18)}%">${f.siap.toLocaleString()}</div></div></td>
+        <td>${deltaChip(d)}</td>
         <td><span class="pct ${pctClass(f.pctCapai)}">${fmtPct(f.pctCapai)}</span></td>
         ${rekodTds}
         <td>${f.bakiKes===0 ? '<span class="baki0">0</span>' : `<span class="baki-warn">${f.bakiKes.toLocaleString()}</span>`}</td>
@@ -433,7 +487,7 @@ function render(){
     <table>
       <thead><tr>
         <th>#</th><th>Nama FE</th><th>Agihan</th><th>Kod 11</th><th>LK</th><th>%LK</th>
-        <th>Kod 50</th><th>Kod B (71-77)</th><th>Siap MKO (A+B)</th><th>% Capai</th>
+        <th>Kod 50</th><th>Kod B (71-77)</th><th>Siap MKO (A+B)</th><th>Perubahan</th><th>% Capai</th>
         ${rekodHeaders}
         <th>Baki Kes Belum MKO</th>
       </tr></thead>
