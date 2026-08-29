@@ -238,15 +238,19 @@ function computeDeltaAndSnapshot(){
     }
   });
 
-  SNAPSHOTS.push({ timestamp: Date.now(), byFE, totalSiap, totalTot });
-  if(SNAPSHOTS.length > MAX_SNAPSHOTS) SNAPSHOTS = SNAPSHOTS.slice(SNAPSHOTS.length - MAX_SNAPSHOTS);
-  try { localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(SNAPSHOTS)); } catch(e){ /* storan penuh — abaikan senyap */ }
+  const lastSnap = SNAPSHOTS.length ? SNAPSHOTS[SNAPSHOTS.length-1] : null;
+  const now = Date.now();
+  if(!lastSnap || (now - lastSnap.timestamp) >= 60000){
+    SNAPSHOTS.push({ timestamp: now, byFE, totalSiap, totalTot });
+    if(SNAPSHOTS.length > MAX_SNAPSHOTS) SNAPSHOTS = SNAPSHOTS.slice(SNAPSHOTS.length - MAX_SNAPSHOTS);
+    try { localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(SNAPSHOTS)); } catch(e){ /* storan penuh — abaikan senyap */ }
+  }
 
   populateDateSelectors();
   applyDateComparison();
 }
 
-function fmtTs(ts){ return new Date(ts).toLocaleString('ms-MY', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}); }
+function fmtTs(ts){ return new Date(ts).toLocaleString('ms-MY', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit', second:'2-digit'}); }
 
 function populateDateSelectors(){
   const selA = document.getElementById('f-tarikhA');
