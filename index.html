@@ -106,6 +106,8 @@
     <div class="fgroup"><label>PPMAS</label><select id="f-ppmas"><option value="">Semua</option></select></div>
     <div class="fgroup"><label>Sumber Fail</label><select id="f-sumberfail"><option value="">Semua</option></select></div>
     <div class="fgroup"><label>Tetap/PMS</label><select id="f-tetappms"><option value="">Semua</option></select></div>
+    <div class="fgroup"><label>Banding Tarikh A</label><select id="f-tarikhA"></select></div>
+    <div class="fgroup"><label>Banding Tarikh B</label><select id="f-tarikhB"></select></div>
   </div>
 </div>
 <div class="toolrow">
@@ -203,7 +205,6 @@ function loadData(){
       document.getElementById('update-time').textContent = new Date().toLocaleString('ms-MY');
       document.getElementById('status-line').textContent = RAW.length.toLocaleString() + ' rekod dimuatkan';
       computeDeltaAndSnapshot();
-      render();
     },
     error: function(err){
       showError('Gagal fetch CSV: ' + err.message + '. Semak sambungan internet / sharing sheet.');
@@ -211,14 +212,16 @@ function loadData(){
   });
 }
 
-const SNAPSHOT_KEY = 'be2026_laporan_snapshot_v1';
-let PREV_SNAPSHOT = null;
-let PREV_LABEL = '';
+const SNAPSHOT_KEY = 'be2026_laporan_snapshots_v2';
+const MAX_SNAPSHOTS = 60;
+let SNAPSHOTS = [];
 try {
   const raw = localStorage.getItem(SNAPSHOT_KEY);
-  if(raw) PREV_SNAPSHOT = JSON.parse(raw);
-} catch(e){ PREV_SNAPSHOT = null; }
+  if(raw) SNAPSHOTS = JSON.parse(raw);
+} catch(e){ SNAPSHOTS = []; }
+
 let GLOBAL_DELTA = { byFE:{}, overallSiap:null, overallTot:null };
+let LABEL_A = '', LABEL_B = '';
 
 function computeDeltaAndSnapshot(){
   const byFE = {};
@@ -235,23 +238,59 @@ function computeDeltaAndSnapshot(){
     }
   });
 
-  if(PREV_SNAPSHOT){
-    GLOBAL_DELTA.overallSiap = totalSiap - PREV_SNAPSHOT.totalSiap;
-    GLOBAL_DELTA.overallTot = totalTot - PREV_SNAPSHOT.totalTot;
-    GLOBAL_DELTA.byFE = {};
-    Object.keys(byFE).forEach(fe => {
-      GLOBAL_DELTA.byFE[fe] = PREV_SNAPSHOT.byFE[fe] !== undefined ? (byFE[fe] - PREV_SNAPSHOT.byFE[fe]) : null;
-    });
-    PREV_LABEL = new Date(PREV_SNAPSHOT.timestamp).toLocaleString('ms-MY');
-  } else {
+  SNAPSHOTS.push({ timestamp: Date.now(), byFE, totalSiap, totalTot });
+  if(SNAPSHOTS.length > MAX_SNAPSHOTS) SNAPSHOTS = SNAPSHOTS.slice(SNAPSHOTS.length - MAX_SNAPSHOTS);
+  try { localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(SNAPSHOTS)); } catch(e){ /* storan penuh — abaikan senyap */ }
+
+  populateDateSelectors();
+  applyDateComparison();
+}
+
+function fmtTs(ts){ return new Date(ts).toLocaleString('ms-MY', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'}); }
+
+function populateDateSelectors(){
+  const selA = document.getElementById('f-tarikhA');
+  const selB = document.getElementById('f-tarikhB');
+  const prevA = selA.value, prevB = selB.value;
+  const opts = SNAPSHOTS.map((s,i) => `<option value="${i}">${fmtTs(s.timestamp)}</option>`).join('');
+  selA.innerHTML = opts;
+  selB.innerHTML = opts;
+  if(SNAPSHOTS.length >= 2){
+    selA.value = prevA && prevA < SNAPSHOTS.length ? prevA : (SNAPSHOTS.length - 2);
+    selB.value = prevB && prevB < SNAPSHOTS.length ? prevB : (SNAPSHOTS.length - 1);
+  } else if(SNAPSHOTS.length === 1){
+    selA.value = 0; selB.value = 0;
+  }
+}
+
+function applyDateComparison(){
+  const idxA = parseInt(document.getElementById('f-tarikhA').value);
+  const idxB = parseInt(document.getElementById('f-tarikhB').value);
+  const snapA = SNAPSHOTS[idxA];
+  const snapB = SNAPSHOTS[idxB];
+
+  if(!snapA || !snapB){
     GLOBAL_DELTA = { byFE:{}, overallSiap:null, overallTot:null };
-    PREV_LABEL = '';
+    LABEL_A = ''; LABEL_B = '';
+    render();
+    return;
   }
 
-  try {
-    localStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ timestamp: Date.now(), byFE, totalSiap, totalTot }));
-  } catch(e){ /* storan penuh / tak disokong — abaikan senyap */ }
+  GLOBAL_DELTA.overallSiap = snapB.totalSiap - snapA.totalSiap;
+  GLOBAL_DELTA.overallTot = snapB.totalTot - snapA.totalTot;
+  GLOBAL_DELTA.byFE = {};
+  const allFE = new Set([...Object.keys(snapA.byFE), ...Object.keys(snapB.byFE)]);
+  allFE.forEach(fe => {
+    const a = snapA.byFE[fe], b = snapB.byFE[fe];
+    GLOBAL_DELTA.byFE[fe] = (a !== undefined && b !== undefined) ? (b - a) : null;
+  });
+  LABEL_A = fmtTs(snapA.timestamp);
+  LABEL_B = fmtTs(snapB.timestamp);
+  render();
 }
+
+document.getElementById('f-tarikhA').addEventListener('change', applyDateComparison);
+document.getElementById('f-tarikhB').addEventListener('change', applyDateComparison);
 
 function showError(msg){
   document.getElementById('status-line').textContent = 'Ralat';
@@ -453,7 +492,7 @@ function render(){
       <div class="card c2"><div class="lbl">SIAP MKO (A+B) <span>✅</span></div><div class="val">${totalSiap.toLocaleString()}</div><div class="note">${fmtPct(overallPct)} drpd jumlah agihan</div></div>
       <div class="card c3"><div class="lbl">BAKI KES <span>📋</span></div><div class="val">${totalBaki.toLocaleString()}</div></div>
       <div class="card c4"><div class="lbl">JUMLAH FE <span>👥</span></div><div class="val">${list.length}</div><div class="note">dalam skop tapisan</div></div>
-      <div class="card c2"><div class="lbl">PERUBAHAN SIAP MKO <span>📈</span></div><div class="val">${deltaChip(GLOBAL_DELTA.overallSiap)}</div><div class="note">${PREV_LABEL ? 'drpd kemaskini ' + PREV_LABEL : 'kemaskini pertama — tiada data lampau'}</div></div>
+      <div class="card c2"><div class="lbl">PERUBAHAN SIAP MKO <span>📈</span></div><div class="val">${deltaChip(GLOBAL_DELTA.overallSiap)}</div><div class="note">${LABEL_A && LABEL_B ? LABEL_A + ' → ' + LABEL_B : 'pilih 2 tarikh untuk banding'}</div></div>
     </div>`;
 
   let rowsHtml = '';
@@ -487,7 +526,7 @@ function render(){
     <table>
       <thead><tr>
         <th>#</th><th>Nama FE</th><th>Agihan</th><th>Kod 11</th><th>LK</th><th>%LK</th>
-        <th>Kod 50</th><th>Kod B (71-77)</th><th>Siap MKO (A+B)</th><th>Perubahan</th><th>% Capai</th>
+        <th>Kod 50</th><th>Kod B (71-77)</th><th>Siap MKO (A+B)</th><th>Perubahan${LABEL_A && LABEL_B ? '<br>('+LABEL_A+' → '+LABEL_B+')' : ''}</th><th>% Capai</th>
         ${rekodHeaders}
         <th>Baki Kes Belum MKO</th>
       </tr></thead>
