@@ -208,6 +208,11 @@
         <div class="multiselect" id="ms-tier"><button type="button" class="ms-btn"><span class="ms-label">Semua</span></button><div class="ms-panel"></div></div>
       </div>
       <div class="fgroup"><label>Tetap/PMS</label><select id="f-tetappms"><option value="">Semua</option></select></div>
+      <div class="fgroup"><label>Nama FE</label>
+        <div class="multiselect" id="ms-fe"><button type="button" class="ms-btn"><span class="ms-label">Semua</span></button><div class="ms-panel"></div></div>
+      </div>
+      <div class="fgroup"><label>Status Respon</label><select id="f-respon"><option value="">Semua</option></select></div>
+      <div class="fgroup"><label>Status Rekod</label><select id="f-rekod"><option value="">Semua</option></select></div>
     </div>
   </div>
 </div>
@@ -218,7 +223,7 @@
   <div id="sector-area"><div class="loading"><div class="spin"></div>Memuatkan data...</div></div>
 
   <div class="section-title"><span class="dot"></span>Carian Rekod</div>
-  <p class="section-sub">Taip No Siri atau Nama Pertubuhan — carian sebahagian, tak case-sensitive. Klik mana-mana baris untuk lihat butiran penuh.</p>
+  <p class="section-sub">Semua pertubuhan dipapar di bawah — taip untuk perhalusi carian ikut No Siri / Nama Pertubuhan (tak case-sensitive). Klik mana-mana baris untuk lihat butiran penuh.</p>
 
   <div class="searchcard">
     <div class="searchbar">
@@ -268,6 +273,7 @@ const SECTORS = [
 let RAW = [], HEADERS = [], RESOLVED = {};
 let FILTERED = [];
 const selectedTier = new Set();
+const selectedFE = new Set();
 
 function resolveCol(field){
   for(const c of COLMAP[field]){
@@ -368,6 +374,12 @@ function loadData(){
       fillSelect('f-tetappms', uniqueVals(RESOLVED.tetappms));
       document.getElementById('f-tetappms').addEventListener('change', applyFilters);
 
+      buildMultiselect('ms-fe', uniqueVals(RESOLVED.fe), selectedFE);
+      fillSelect('f-respon', uniqueVals(RESOLVED.respon));
+      document.getElementById('f-respon').addEventListener('change', applyFilters);
+      fillSelect('f-rekod', uniqueVals(RESOLVED.rekod));
+      document.getElementById('f-rekod').addEventListener('change', applyFilters);
+
       applyFilters();
     },
     error:function(err){ showError('Gagal fetch CSV: '+err.message); }
@@ -380,9 +392,14 @@ function showError(msg){
 
 function applyFilters(){
   const fTetapPms = document.getElementById('f-tetappms').value;
+  const fRespon = document.getElementById('f-respon').value;
+  const fRekod = document.getElementById('f-rekod').value;
   FILTERED = RAW.filter(r => {
     if(selectedTier.size > 0 && RESOLVED.tier !== -1 && !selectedTier.has((r[RESOLVED.tier]||'').trim())) return false;
+    if(selectedFE.size > 0 && RESOLVED.fe !== -1 && !selectedFE.has((r[RESOLVED.fe]||'').trim())) return false;
     if(fTetapPms && RESOLVED.tetappms !== -1 && (r[RESOLVED.tetappms]||'').trim() !== fTetapPms) return false;
+    if(fRespon && RESOLVED.respon !== -1 && (r[RESOLVED.respon]||'').trim() !== fRespon) return false;
+    if(fRekod && RESOLVED.rekod !== -1 && (r[RESOLVED.rekod]||'').trim() !== fRekod) return false;
     return true;
   });
   renderSectors();
@@ -447,7 +464,7 @@ let CURRENT_SHOWN = [];
 
 function renderResults(query){
   query = (query||'').trim().toLowerCase();
-  let rows = [];
+  let rows = FILTERED;
   if(query){
     rows = FILTERED.filter(r => {
       const ns = RESOLVED.noSiri !== -1 ? (r[RESOLVED.noSiri]||'').toLowerCase() : '';
@@ -456,12 +473,8 @@ function renderResults(query){
     });
   }
 
-  document.getElementById('result-count').textContent = query ? (rows.length.toLocaleString() + ' rekod dijumpai') : '';
+  document.getElementById('result-count').textContent = rows.length.toLocaleString() + ' rekod';
 
-  if(!query){
-    document.getElementById('result-area').innerHTML = '<div class="tablewrap"><div class="empty"><div class="ico">🔍</div><p>Taip di atas untuk mula carian.</p></div></div>';
-    return;
-  }
   if(rows.length === 0){
     document.getElementById('result-area').innerHTML = '<div class="tablewrap"><div class="empty"><div class="ico">🗂️</div><p>Tiada rekod sepadan.</p></div></div>';
     return;
@@ -482,7 +495,7 @@ function renderResults(query){
     <div class="tablewrap">
     <div class="tablescroll">
     <table>
-      <thead><tr><th>No Siri</th><th>Nama Pertubuhan</th><th>Kes Siapa (FE)</th><th>Status Rekod</th><th>Status Respon</th></tr></thead>
+      <thead><tr><th>No Siri</th><th>Nama Pertubuhan</th><th>Nama FE</th><th>Status Rekod</th><th>Status Respon</th></tr></thead>
       <tbody>${body}</tbody>
     </table>
     </div>
