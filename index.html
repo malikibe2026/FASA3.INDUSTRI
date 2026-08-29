@@ -250,7 +250,14 @@ function computeDeltaAndSnapshot(){
   applyDateComparison();
 }
 
-function fmtTs(ts){ return new Date(ts).toLocaleString('ms-MY', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit', second:'2-digit'}); }
+function fmtTs(ts){
+  const d = new Date(ts);
+  const dd = d.getDate();
+  const mm = d.getMonth()+1;
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mi = String(d.getMinutes()).padStart(2,'0');
+  return `${dd}/${mm} ${hh}:${mi}`;
+}
 
 function populateDateSelectors(){
   const selA = document.getElementById('f-tarikhA');
