@@ -167,18 +167,37 @@
 
   .detailrow td{background:#f7f9fd;padding:0;border-bottom:1px solid var(--line);}
   .detailbox{padding:20px 22px;}
-  .detailgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;}
-  @media (max-width:900px){.detailgrid{grid-template-columns:repeat(2,1fr);}}
-  .dfield{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px 13px;}
-  .dfield .dl{font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub);font-weight:700;margin-bottom:4px;}
-  .dfield .dv{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;}
-  .dfield .dv.missing{color:var(--sub2);font-weight:500;font-size:13px;}
-  .ssmbox{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
-  .ssmbox .sslbl{font-size:12px;color:var(--sub);font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
-  .ssmcompare{display:flex;gap:22px;flex-wrap:wrap;}
-  .ssmcompare .sitem{text-align:center;}
-  .ssmcompare .sitem .sv{font-size:17px;font-weight:800;}
-  .ssmcompare .sitem .sk{font-size:10.5px;color:var(--sub);text-transform:uppercase;}
+  .detailbox2{padding:22px 24px;}
+  .dsec{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:14px;}
+  .dsec:last-child{margin-bottom:0;}
+  .dsec h4{margin:0 0 12px;font-size:13.5px;font-weight:800;display:flex;align-items:center;gap:8px;color:var(--ink);}
+  .dsec h4 .yrbadge{font-size:10.5px;font-weight:700;background:#eef2ff;color:#3730a3;padding:2px 8px;border-radius:20px;}
+
+  .infogrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  @media (max-width:900px){.infogrid{grid-template-columns:repeat(2,1fr);}}
+  .ifield{background:#f8fafc;border-radius:9px;padding:9px 12px;}
+  .ifield .il{font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub);font-weight:700;margin-bottom:3px;}
+  .ifield .iv{font-size:13.5px;font-weight:700;}
+  .ifield .iv.missing{color:var(--sub2);font-weight:500;font-size:12.5px;}
+  .ifield a{color:var(--accent);text-decoration:none;}
+
+  .cmptable{width:100%;border-collapse:collapse;}
+  .cmptable th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--sub);padding:6px 10px;border-bottom:2px solid var(--line);font-weight:700;}
+  .cmptable th.num, .cmptable td.num{text-align:right;}
+  .cmptable td{padding:8px 10px;border-bottom:1px solid var(--line);font-size:13px;font-variant-numeric:tabular-nums;}
+  .cmptable tr:last-child td{border-bottom:none;}
+  .cmptable td.rowlbl{font-weight:600;color:var(--ink);}
+  .cmp-up{color:var(--green);font-weight:700;}
+  .cmp-down{color:var(--red);font-weight:700;}
+  .cmp-flat{color:var(--sub2);}
+  .cmp-na{color:var(--sub2);font-weight:500;font-size:12px;}
+
+  .trend3{display:flex;gap:10px;margin-top:4px;}
+  .trend3 .tcell{flex:1;background:#f8fafc;border-radius:8px;padding:8px 10px;text-align:center;}
+  .trend3 .tcell .tl{font-size:10px;color:var(--sub);text-transform:uppercase;margin-bottom:2px;}
+  .trend3 .tcell .tv{font-size:13.5px;font-weight:700;}
+
+  .empty-detail{color:var(--sub2);font-size:12.5px;font-style:italic;padding:4px 0;}
   .diff-up{color:var(--green);} .diff-down{color:var(--red);}
   .col-note{font-size:11px;color:var(--sub2);margin-top:10px;}
 
@@ -249,14 +268,7 @@ const COLMAP = {
   rekod:       ['Status Rekod','STATUS_REKOD','Status_Rekod','STATUS.1'],
   survei:      ['KodSurvei_KET','SURVEI','MSIC DAN KET'],
   tier:        ['TIER','Tier'],
-  tetappms:    ['TETAP/PMS','TETAP_PMS','STATUS_PEGAWAI','JENIS_PEGAWAI','Tetap/PMS'],
-  tahun:       ['TAHUN','TAHUN_DATA','YEAR','Tahun Data','TAHUN_RUJUKAN'],
-  pendapatan:  ['PENDAPATAN','JUMLAH_PENDAPATAN','REVENUE','Pendapatan','JUALAN'],
-  aset:        ['ASET','JUMLAH_ASET','Aset','TOTAL_ASSETS'],
-  bekerja:     ['BEKERJA','JUMLAH_PEKERJA','BILANGAN_PEKERJA','Bekerja','WORKERS','BILANGAN_BEKERJA'],
-  belanja:     ['BELANJA','JUMLAH_BELANJA','Belanja','EXPENSES'],
-  gaji:        ['GAJI','JUMLAH_GAJI','Gaji','SALARY','GAJI_UPAH'],
-  ssmRevenue:  ['SSM_REVENUE','REVENUE_SSM','PENDAPATAN_SSM','SSM Revenue','REVENUE (SSM)']
+  tetappms:    ['TETAP/PMS','TETAP_PMS','STATUS_PEGAWAI','JENIS_PEGAWAI','Tetap/PMS']
 };
 
 const CODES_A1 = ['11'];
@@ -270,7 +282,33 @@ const SECTORS = [
   { name:'Perlombongan & Perkuarian', codes:['200','207'], cls:'s3' }
 ];
 
-let RAW = [], HEADERS = [], RESOLVED = {};
+// Lajur data tahunan sebenar (padanan tepat, tak perlu teka)
+const EXACT_FIELDS = [
+  'MM 2024 Bil Pekerja','MM 2024 Nilai Jualan (RM)','MM 2024 Gaji/Upah (RM)',
+  'MM 2025 Bil Pekerja','MM 2025 Gaji/Upah (RM)','MM 2025 Nilai Jualan (RM)',
+  'QCS 2025 Nilai Kerja Semasa (RM)',
+  'QCS 2025 Bil. Pekerja semasa : Bulan pertama','QCS 2025 Bil. Pekerja semasa : Bulan kedua','QCS 2025 Bil. Pekerja semasa : Bulan ketiga',
+  'QCS 2025 Jumlah gaji dan upah semasa : Bulan pertama (RM)','QCS 2025 Jumlah gaji dan upah semasa : Bulan kedua (RM)','QCS 2025 Jumlah gaji dan upah semasa : Bulan ketiga (RM)',
+  'QCS 2025 Purata Gaji','QCS 2025 Bil Pekerja',
+  'HQ BE 2015 Perbelanjaan (RM)','HQ BE 2015 Harta Tetap (RM)','HQ BE 2015 Pendapatan (RM)','HQ BE 2015 INPUT','HQ BE 2015 OUTPUT','HQ BE 2015 Hasil (RM)','HQ BE 2015 Gaji/Upah (RM)','HQ BE 2015 Jumlah Pekerja','HQ BE 2015 IO','HQ BE 2015 VA',
+  'HQ BE 2023 Perbelanjaan (RM)','HQ BE 2023 Harta Tetap (RM)','HQ BE 2023 Pendapatan (RM)','HQ BE 2023 INPUT','HQ BE 2023 OUTPUT','HQ BE 2023 Hasil (RM)','HQ BE 2023 Gaji/Upah (RM)','HQ BE 2023 Jumlah Pekerja','HQ BE 2023 IO','HQ BE 2023 VA',
+  '(Operasi) BE2023 Jumlah Pendapatan','(Operasi) BE2023 Jumlah Perbelanjaan','(Operasi) BE2023 Jumlah Pekerja','(Operasi) BE2023 Gaji & Upah','(Operasi) BE2023 Harta Tetap','(Operasi) BE2023 Nilai Output Kasar','(Operasi) BE2023 Nilai Input Kasar','(Operasi) BE2023 io','(Operasi) BE2023 purata_gaji','(Operasi) BE2023 va',
+  'new lat','new lon'
+];
+let EF = {}; // nama lajur -> index dalam HEADERS
+function resolveExactFields(){
+  EF = {};
+  EXACT_FIELDS.forEach(name => {
+    const idx = HEADERS.findIndex(h => h.trim().toLowerCase() === name.trim().toLowerCase());
+    EF[name] = idx;
+  });
+}
+function ev(r, name){
+  const idx = EF[name];
+  if(idx === undefined || idx === -1) return null;
+  return r[idx];
+}
+function evNum(r, name){ return parseNum(ev(r, name)); }
 let FILTERED = [];
 const selectedTier = new Set();
 const selectedFE = new Set();
@@ -369,6 +407,7 @@ function loadData(){
       RAW = rows.slice(1);
       RESOLVED = {};
       Object.keys(COLMAP).forEach(k => { RESOLVED[k] = resolveCol(k); });
+      resolveExactFields();
 
       buildMultiselect('ms-tier', uniqueVals(RESOLVED.tier), selectedTier);
       fillSelect('f-tetappms', uniqueVals(RESOLVED.tetappms));
@@ -507,14 +546,26 @@ function renderResults(query){
   });
 }
 
-function fieldBox(label, colKey, r, formatter){
-  const idx = RESOLVED[colKey];
-  if(idx === -1) return `<div class="dfield"><div class="dl">${label}</div><div class="dv missing">Lajur tidak ditemui</div></div>`;
-  const raw = r[idx];
-  const num = parseNum(raw);
-  const display = num !== null ? (formatter ? formatter(num) : num.toLocaleString()) : (raw && raw.trim() ? raw : '—');
-  const isMissing = !raw || !raw.trim();
-  return `<div class="dfield"><div class="dl">${label}</div><div class="dv ${isMissing?'missing':''}">${display}</div></div>`;
+function ifield(label, val, formatter){
+  const missing = val === null || val === undefined || val === '';
+  const display = missing ? '—' : (formatter ? formatter(val) : val);
+  return `<div class="ifield"><div class="il">${label}</div><div class="iv ${missing?'missing':''}">${display}</div></div>`;
+}
+
+function cmpRow(label, valOld, valNew, formatter){
+  const fmt = (v) => v === null ? '—' : (formatter ? formatter(v) : v.toLocaleString());
+  let deltaHtml = '<span class="cmp-na">—</span>';
+  if(valOld !== null && valNew !== null){
+    const diff = valNew - valOld;
+    const pctChange = valOld !== 0 ? (diff/Math.abs(valOld)*100) : null;
+    const cls = diff > 0 ? 'cmp-up' : diff < 0 ? 'cmp-down' : 'cmp-flat';
+    const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '▬';
+    const sign = diff > 0 ? '+' : '';
+    deltaHtml = `<span class="${cls}">${arrow} ${sign}${fmt(diff)}${pctChange !== null ? ` (${sign}${pctChange.toFixed(1)}%)` : ''}</span>`;
+  } else if(valOld === null && valNew === null){
+    deltaHtml = '<span class="cmp-na">Tiada data</span>';
+  }
+  return `<tr><td class="rowlbl">${label}</td><td class="num">${fmt(valOld)}</td><td class="num">${fmt(valNew)}</td><td class="num">${deltaHtml}</td></tr>`;
 }
 
 function toggleDetail(idx){
@@ -530,48 +581,114 @@ function toggleDetail(idx){
   const r = CURRENT_SHOWN[idx];
   tr.classList.add('open');
 
-  const pendapatanIdx = RESOLVED.pendapatan;
-  const ssmIdx = RESOLVED.ssmRevenue;
-  let compareHtml = '';
-  if(pendapatanIdx !== -1 && ssmIdx !== -1){
-    const p = parseNum(r[pendapatanIdx]);
-    const s = parseNum(r[ssmIdx]);
-    if(p !== null && s !== null){
-      const diff = p - s;
-      const diffPct = s !== 0 ? (diff/s*100) : 0;
-      const cls = diff >= 0 ? 'diff-up' : 'diff-down';
-      const sign = diff >= 0 ? '+' : '';
-      compareHtml = `
-        <div class="ssmbox">
-          <div class="sslbl">Banding Pendapatan vs SSM</div>
-          <div class="ssmcompare">
-            <div class="sitem"><div class="sv">${fmtMoney(p)}</div><div class="sk">Data Frame</div></div>
-            <div class="sitem"><div class="sv">${fmtMoney(s)}</div><div class="sk">SSM</div></div>
-            <div class="sitem"><div class="sv ${cls}">${sign}${fmtMoney(diff)} (${sign}${diffPct.toFixed(1)}%)</div><div class="sk">Beza</div></div>
-          </div>
-        </div>`;
-    } else {
-      compareHtml = `<div class="ssmbox"><div class="sslbl">Banding Pendapatan vs SSM</div><div class="col-note">Data pendapatan atau SSM tiada untuk rekod ini.</div></div>`;
-    }
-  } else {
-    compareHtml = `<div class="ssmbox"><div class="sslbl">Banding Pendapatan vs SSM</div><div class="col-note">Lajur pendapatan/SSM belum dikenalpasti dalam sheet — sila sahkan nama lajur sebenar.</div></div>`;
-  }
+  // ---- Maklumat Am ----
+  const lat = ev(r,'new lat'), lon = ev(r,'new lon');
+  const hasLoc = lat && lon && parseNum(lat) !== null && parseNum(lon) !== null;
+  const lokasiHtml = hasLoc
+    ? `<a href="https://www.google.com/maps?q=${encodeURIComponent(lat)},${encodeURIComponent(lon)}" target="_blank">${lat}, ${lon} ↗</a>`
+    : null;
 
-  const detailHtml = `
-    <div class="detailbox">
-      <div class="detailgrid">
-        ${fieldBox('Kod Survei', 'survei', r)}
-        ${fieldBox('Tahun Data', 'tahun', r)}
-        ${fieldBox('Pendapatan', 'pendapatan', r, fmtMoney)}
-        ${fieldBox('Aset', 'aset', r, fmtMoney)}
-        ${fieldBox('Bilangan Bekerja', 'bekerja', r)}
-        ${fieldBox('Belanja', 'belanja', r, fmtMoney)}
-        ${fieldBox('Gaji & Upah', 'gaji', r, fmtMoney)}
+  const infoHtml = `
+    <div class="dsec">
+      <h4>📍 Maklumat Am</h4>
+      <div class="infogrid">
+        ${ifield('Kod Survei', RESOLVED.survei!==-1 ? r[RESOLVED.survei] : null)}
+        ${ifield('No Siri', RESOLVED.noSiri!==-1 ? r[RESOLVED.noSiri] : null)}
+        ${ifield('Status Rekod', RESOLVED.rekod!==-1 ? r[RESOLVED.rekod] : null)}
+        ${ifield('Status Respon', RESOLVED.respon!==-1 ? r[RESOLVED.respon] : null)}
+        ${ifield('Tier', RESOLVED.tier!==-1 ? r[RESOLVED.tier] : null)}
+        ${ifield('Tetap/PMS', RESOLVED.tetappms!==-1 ? r[RESOLVED.tetappms] : null)}
+        ${ifield('Lokasi (Lat, Lon)', lokasiHtml, (v)=>v)}
       </div>
-      ${compareHtml}
     </div>`;
 
-  detailTr.querySelector('td').innerHTML = detailHtml;
+  // ---- MM 2024 vs MM 2025 ----
+  const mmHtml = `
+    <div class="dsec">
+      <h4>📊 Trend MM — Manufacturing Monthly <span class="yrbadge">2024 vs 2025</span></h4>
+      <table class="cmptable">
+        <thead><tr><th>Petunjuk</th><th class="num">2024</th><th class="num">2025</th><th class="num">Perubahan</th></tr></thead>
+        <tbody>
+          ${cmpRow('Bilangan Pekerja', evNum(r,'MM 2024 Bil Pekerja'), evNum(r,'MM 2025 Bil Pekerja'))}
+          ${cmpRow('Gaji/Upah', evNum(r,'MM 2024 Gaji/Upah (RM)'), evNum(r,'MM 2025 Gaji/Upah (RM)'), fmtMoney)}
+          ${cmpRow('Nilai Jualan', evNum(r,'MM 2024 Nilai Jualan (RM)'), evNum(r,'MM 2025 Nilai Jualan (RM)'), fmtMoney)}
+        </tbody>
+      </table>
+    </div>`;
+
+  // ---- QCS 2025 ----
+  const qcsBil1 = evNum(r,'QCS 2025 Bil. Pekerja semasa : Bulan pertama');
+  const qcsBil2 = evNum(r,'QCS 2025 Bil. Pekerja semasa : Bulan kedua');
+  const qcsBil3 = evNum(r,'QCS 2025 Bil. Pekerja semasa : Bulan ketiga');
+  const qcsGaji1 = evNum(r,'QCS 2025 Jumlah gaji dan upah semasa : Bulan pertama (RM)');
+  const qcsGaji2 = evNum(r,'QCS 2025 Jumlah gaji dan upah semasa : Bulan kedua (RM)');
+  const qcsGaji3 = evNum(r,'QCS 2025 Jumlah gaji dan upah semasa : Bulan ketiga (RM)');
+  const qcsHasData = [qcsBil1,qcsBil2,qcsBil3,qcsGaji1,qcsGaji2,qcsGaji3].some(v => v !== null)
+    || evNum(r,'QCS 2025 Nilai Kerja Semasa (RM)') !== null || evNum(r,'QCS 2025 Purata Gaji') !== null || evNum(r,'QCS 2025 Bil Pekerja') !== null;
+
+  const qcsHtml = `
+    <div class="dsec">
+      <h4>🏗️ QCS — Quarterly Construction Survey <span class="yrbadge">2025</span></h4>
+      ${qcsHasData ? `
+      <div class="infogrid" style="margin-bottom:12px;">
+        ${ifield('Nilai Kerja Semasa', evNum(r,'QCS 2025 Nilai Kerja Semasa (RM)'), fmtMoney)}
+        ${ifield('Purata Gaji', evNum(r,'QCS 2025 Purata Gaji'), fmtMoney)}
+        ${ifield('Bil. Pekerja', evNum(r,'QCS 2025 Bil Pekerja'))}
+      </div>
+      <div style="font-size:11px;color:var(--sub);font-weight:700;text-transform:uppercase;margin-bottom:5px;">Bil. Pekerja Semasa (3 Bulan)</div>
+      <div class="trend3">
+        <div class="tcell"><div class="tl">Bulan 1</div><div class="tv">${qcsBil1!==null?qcsBil1.toLocaleString():'—'}</div></div>
+        <div class="tcell"><div class="tl">Bulan 2</div><div class="tv">${qcsBil2!==null?qcsBil2.toLocaleString():'—'}</div></div>
+        <div class="tcell"><div class="tl">Bulan 3</div><div class="tv">${qcsBil3!==null?qcsBil3.toLocaleString():'—'}</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--sub);font-weight:700;text-transform:uppercase;margin:10px 0 5px;">Gaji & Upah Semasa (3 Bulan)</div>
+      <div class="trend3">
+        <div class="tcell"><div class="tl">Bulan 1</div><div class="tv">${qcsGaji1!==null?fmtMoney(qcsGaji1):'—'}</div></div>
+        <div class="tcell"><div class="tl">Bulan 2</div><div class="tv">${qcsGaji2!==null?fmtMoney(qcsGaji2):'—'}</div></div>
+        <div class="tcell"><div class="tl">Bulan 3</div><div class="tv">${qcsGaji3!==null?fmtMoney(qcsGaji3):'—'}</div></div>
+      </div>` : `<p class="empty-detail">Tiada data QCS 2025 untuk rekod ini (bukan sektor Pembinaan / tiada respon).</p>`}
+    </div>`;
+
+  // ---- HQ BE 2015 vs 2023 ----
+  const hqHtml = `
+    <div class="dsec">
+      <h4>🏛️ Perbandingan Banci Ekonomi (HQ BE) <span class="yrbadge">2015 vs 2023</span></h4>
+      <table class="cmptable">
+        <thead><tr><th>Petunjuk</th><th class="num">2015</th><th class="num">2023</th><th class="num">Perubahan</th></tr></thead>
+        <tbody>
+          ${cmpRow('Pendapatan', evNum(r,'HQ BE 2015 Pendapatan (RM)'), evNum(r,'HQ BE 2023 Pendapatan (RM)'), fmtMoney)}
+          ${cmpRow('Hasil', evNum(r,'HQ BE 2015 Hasil (RM)'), evNum(r,'HQ BE 2023 Hasil (RM)'), fmtMoney)}
+          ${cmpRow('Perbelanjaan', evNum(r,'HQ BE 2015 Perbelanjaan (RM)'), evNum(r,'HQ BE 2023 Perbelanjaan (RM)'), fmtMoney)}
+          ${cmpRow('Harta Tetap', evNum(r,'HQ BE 2015 Harta Tetap (RM)'), evNum(r,'HQ BE 2023 Harta Tetap (RM)'), fmtMoney)}
+          ${cmpRow('Gaji/Upah', evNum(r,'HQ BE 2015 Gaji/Upah (RM)'), evNum(r,'HQ BE 2023 Gaji/Upah (RM)'), fmtMoney)}
+          ${cmpRow('Jumlah Pekerja', evNum(r,'HQ BE 2015 Jumlah Pekerja'), evNum(r,'HQ BE 2023 Jumlah Pekerja'))}
+          ${cmpRow('INPUT', evNum(r,'HQ BE 2015 INPUT'), evNum(r,'HQ BE 2023 INPUT'))}
+          ${cmpRow('OUTPUT', evNum(r,'HQ BE 2015 OUTPUT'), evNum(r,'HQ BE 2023 OUTPUT'))}
+          ${cmpRow('IO', evNum(r,'HQ BE 2015 IO'), evNum(r,'HQ BE 2023 IO'))}
+          ${cmpRow('VA (Nilai Ditambah)', evNum(r,'HQ BE 2015 VA'), evNum(r,'HQ BE 2023 VA'))}
+        </tbody>
+      </table>
+    </div>`;
+
+  // ---- (Operasi) BE2023 ----
+  const opHtml = `
+    <div class="dsec">
+      <h4>⚙️ Data Operasi <span class="yrbadge">BE2023</span></h4>
+      <div class="infogrid">
+        ${ifield('Jumlah Pendapatan', evNum(r,'(Operasi) BE2023 Jumlah Pendapatan'), fmtMoney)}
+        ${ifield('Jumlah Perbelanjaan', evNum(r,'(Operasi) BE2023 Jumlah Perbelanjaan'), fmtMoney)}
+        ${ifield('Jumlah Pekerja', evNum(r,'(Operasi) BE2023 Jumlah Pekerja'))}
+        ${ifield('Gaji & Upah', evNum(r,'(Operasi) BE2023 Gaji & Upah'), fmtMoney)}
+        ${ifield('Harta Tetap', evNum(r,'(Operasi) BE2023 Harta Tetap'), fmtMoney)}
+        ${ifield('Nilai Output Kasar', evNum(r,'(Operasi) BE2023 Nilai Output Kasar'), fmtMoney)}
+        ${ifield('Nilai Input Kasar', evNum(r,'(Operasi) BE2023 Nilai Input Kasar'), fmtMoney)}
+        ${ifield('IO', evNum(r,'(Operasi) BE2023 io'))}
+        ${ifield('Purata Gaji', evNum(r,'(Operasi) BE2023 purata_gaji'), fmtMoney)}
+        ${ifield('VA (Nilai Ditambah)', evNum(r,'(Operasi) BE2023 va'), fmtMoney)}
+      </div>
+    </div>`;
+
+  detailTr.querySelector('td').innerHTML = `<div class="detailbox2">${infoHtml}${mmHtml}${qcsHtml}${hqHtml}${opHtml}</div>`;
   detailTr.style.display = '';
 }
 
